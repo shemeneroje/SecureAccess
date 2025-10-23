@@ -15,6 +15,8 @@ public class SecureAccess {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        welcomeGUI myGUI = new welcomeGUI(); 
+        myGUI.setVisible(true);
     }
     
 }
