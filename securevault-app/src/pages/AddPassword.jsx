@@ -2,6 +2,23 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar.jsx';
 import { generateStrongPassword } from '../utils/passwordUtils.jsx';
+import { Eye, EyeOff } from 'lucide-react'; 
+
+// function to determine the stregnth of a password
+const getPasswordStrength = (password) => {
+    //set initial score to zero, then increase, according to the constracts below
+    let score = 0;
+    if (password.length > 7) score += 1;
+    if (password.length > 11) score += 1;
+    if (/[A-Z]/.test(password)) score += 1; // Uppercase
+    if (/[a-z]/.test(password)) score += 1; // Lowercase
+    if (/\d/.test(password)) score += 1; // Numbers
+    if (/[^A-Za-z0-9]/.test(password)) score += 1; // Special characters
+    
+    if (score < 3) return { level: 'Weak', color: '#e74c3c', score: score };
+    if (score < 5) return { level: 'Medium', color: '#f39c12', score: score };
+    return { level: 'Strong', color: '#2ecc71', score: score };
+};
 
 function AddPassword({ passwords, addPassword, onLogout }) {
   const navigate = useNavigate();
@@ -14,6 +31,9 @@ function AddPassword({ passwords, addPassword, onLogout }) {
     notes: '' 
   });
 
+  // The state to control password visibility
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -25,12 +45,24 @@ function AddPassword({ passwords, addPassword, onLogout }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const strength = getPasswordStrength(formData.password);
+
+    // Password strength check prompt (asking user to make a stronger password)
+    if (strength.level === 'Weak') {
+        if (!window.confirm('Warning: This password is weak. Do you wish to save it anyway?')) {
+            return; // Stop submission if user cancels
+        }
+    }
+
     addPassword(formData); // Use the function from App.js
     navigate('/'); // Go back to the dashboard
   };
   
   // Simple check for display
-  const isPasswordStrong = formData.password.length >= 12;
+  //const isPasswordStrong = formData.password.length >= 12;
+
+  //display for the strength using the function
+  const strength = getPasswordStrength(formData.password);
 
   return (
     <div className="main-layout">
@@ -67,22 +99,33 @@ function AddPassword({ passwords, addPassword, onLogout }) {
           <label htmlFor="password">Password *</label>
           <div className="password-input-group">
             <input 
-              type="text" 
+              type={showPassword ? 'text' : 'password'} 
               name="password" 
               placeholder="Generated or Manual Password"
               value={formData.password} 
               onChange={handleChange} 
               required
             />
+
+            {/* Eye symbol toggle for visibility */}
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)} 
+              className="icon-btn" 
+              title={showPassword ? 'Hide Password' : 'Show Password'}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+
             <button type="button" onClick={handleGenerate} style={{ background: '#555' }}>
               Generate
             </button>
           </div>
           
-          {/*  */}
-          {isPasswordStrong && (
-            <div className="password-strength">
-              Password Strength: **Very Strong** (Length: {formData.password.length})
+          {/* Password Strength Indicator */}
+          {formData.password && (
+            <div className="password-strength" style={{ color: strength.color }}>
+              Strength: **{strength.level}** (Score: {strength.score}/6)
             </div>
           )}
           

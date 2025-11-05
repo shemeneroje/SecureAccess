@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar.jsx';
+import { Eye, EyeOff } from 'lucide-react';
 
 function ViewPassword({ passwords, onLogout, updatePassword, deletePassword }) {
   const { id } = useParams(); // Get the ID from the URL
@@ -11,6 +12,9 @@ function ViewPassword({ passwords, onLogout, updatePassword, deletePassword }) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [currentData, setCurrentData] = useState(initialPassword || {});
+
+  // Code to control password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle case where password is not found (shouldn't happen with ProtectedRoute)
   if (!initialPassword) {
@@ -25,6 +29,7 @@ function ViewPassword({ passwords, onLogout, updatePassword, deletePassword }) {
     e.preventDefault();
     updatePassword(currentData); // Update the global state in App.jsx
     setIsEditing(false);
+    setShowPassword(false); //To hide the password after saving
     alert('Password updated successfully!');
   };
   
@@ -35,20 +40,49 @@ function ViewPassword({ passwords, onLogout, updatePassword, deletePassword }) {
     }
   };
 
-  const displayField = (label, key, type = 'text') => (
+  const displayField = (label, key, isPassword = false) => (
     <div className="details-row">
       <span style={{ width: '120px' }}>{label}:</span>
+      
       {isEditing ? (
-        <input 
-          type={type} 
-          name={key} 
-          value={currentData[key] || ''} 
-          onChange={handleChange} 
-          style={{ width: '60%' }}
-        />
+        // Editing Mode: Input field with toggle button
+        <div style={{ flexGrow: 1, display: 'flex' }}>
+          <input 
+            type={isPassword && !showPassword ? 'password' : 'text'} 
+            name={key} 
+            value={currentData[key] || ''} 
+            onChange={handleChange} 
+            style={{ flexGrow: 1 }}
+          />
+          {isPassword && (
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)} 
+              className="icon-btn" 
+              title={showPassword ? 'Hide Password' : 'Show Password'}
+              style={{ padding: '0 10px', height: '40px', background: 'none' }}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          )}
+        </div>
       ) : (
-        <span style={{ color: 'white' }}>
-          {type === 'password' ? '********' : currentData[key]}
+        // Viewing Mode: Display value with toggle button for passwords
+        <span style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Display logic: show asterisks if it's a password and is hiddden */}
+          {isPassword && !showPassword ? '********' : currentData[key]}
+          
+          {isPassword && (
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)} 
+              className="icon-btn" 
+              title={showPassword ? 'Hide Password' : 'Show Password'}
+              style={{ padding: 0, background: 'none' }}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          )}
         </span>
       )}
     </div>
@@ -79,7 +113,7 @@ function ViewPassword({ passwords, onLogout, updatePassword, deletePassword }) {
         <form onSubmit={handleUpdate} className="details-box">
           {displayField('Service Name', 'name')}
           {displayField('Username/Email', 'username')}
-          {displayField('Password', 'password', 'password')}
+          {displayField('Password', 'password', true)} {/* Adding Pass true for isPassword */}
           {displayField('URL', 'url')}
           {displayField('Category', 'category')}
           

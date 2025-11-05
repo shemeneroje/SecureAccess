@@ -7,6 +7,7 @@ import AddPassword from './pages/AddPassword.jsx';
 import ViewPassword from './pages/ViewPassword.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { initialPasswords } from './utils/passwordUtils.jsx'; // Mock data
+import Setup2FA from './pages/Setup2FA.jsx'; 
 
 function App() {
   // State 1: Authentication status
@@ -73,6 +74,12 @@ function App() {
             />
           } 
         />
+
+        {/* 2FA Setup Route */}
+          <Route 
+            path="/settings/2fa" 
+            element={<Setup2FA passwords={passwords} onLogout={handleLogout} />} 
+          />
       </Route>
 
       {/* Default route: if they are authenticated, go to Dashboard. Otherwise, Login. */}

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link} from 'react-router-dom';
+import { LogOut, Plus, Home, Key, Settings } from 'lucide-react';
 
+// This component's role is navigation and providing key app info/actions.
 function Sidebar({ passwordCount, onLogout }) {
-  const location = useLocation();
-
   return (
     <div className="sidebar">
       <div className="logo-section">🔒 SecureVault</div>
@@ -17,11 +17,17 @@ function Sidebar({ passwordCount, onLogout }) {
         >
           My Passwords
         </Link>
+        
         <Link 
           to="/add" 
           className={location.pathname === '/add' ? 'active' : ''}
         >
           Add New Password
+        </Link>
+
+        {/* Two Factor Auth Link */}
+        <Link to="/settings/2fa" className="nav-item">
+          <Settings size={20} /> Activate 2FA
         </Link>
       </nav>
       
