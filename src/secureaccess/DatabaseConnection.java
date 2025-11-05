@@ -16,19 +16,23 @@ public class DatabaseConnection {
 
     private static final String URL = "jdbc:sqlite:password_manager.db"; 
 
-    public static Connection connect() {
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(URL);
-            System.out.println("✅ Connection successful!");
-        } catch (SQLException e) {
-            System.out.println("❌ Connection failed: " + e.getMessage());
+    private static Connection conn;
+
+    // Reuse connection
+    public static Connection getConnection() {
+        if (conn == null) {
+            try {
+                conn = DriverManager.getConnection(URL);
+                System.out.println("Connection successful!");
+            } catch (SQLException e) {
+                System.out.println("Connection failed: " + e.getMessage());
+            }
         }
         return conn;
     }
 
     // Test it
     public static void main(String[] args) {
-        connect();
+        getConnection(); // test
     }
 }
