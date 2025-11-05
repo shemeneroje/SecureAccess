@@ -30,17 +30,19 @@ public final class Hashing {
     }
 
     public static String hashPassword(char[] password, String saltBase64) {
-        try {
-            byte[] salt = Base64.getDecoder().decode(saltBase64);
-            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_BITS);
-            SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            byte[] hash = f.generateSecret(spec).getEncoded();
-            java.util.Arrays.fill(password, '\0');           // hygiene
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
-            throw new IllegalStateException("PBKDF2 failed", e);
-        }
+    try {
+        byte[] salt = Base64.getDecoder().decode(saltBase64);
+        PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_BITS);
+        SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        byte[] hash = f.generateSecret(spec).getEncoded();
+        return Base64.getEncoder().encodeToString(hash);
+    } catch (Exception e) {
+        throw new IllegalStateException("PBKDF2 failed", e);
+    } finally {
+        java.util.Arrays.fill(password, '\0');
     }
+}
+
 
     public static boolean verify(char[] candidate, String saltBase64, String expectedHashBase64) {
         String cand = hashPassword(candidate, saltBase64);
