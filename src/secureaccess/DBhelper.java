@@ -127,6 +127,22 @@ public class DBhelper {
         return null;
     }
     
+    //Retrieves user ID by email (Needed for linking passwords by ID).
+    public static int getUserIdByEmail(String email) {
+        String sql = "SELECT id FROM users WHERE email = ?";
+        try (Connection conn = DatabaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching user ID: " + e.getMessage());
+        }
+        return -1; // Indicates user not found or error
+    }
+    
     //Creates the passwords table if it doesn't exist.
     public static void initializePasswordsTable() {
         String sql = "CREATE TABLE IF NOT EXISTS passwords (" 

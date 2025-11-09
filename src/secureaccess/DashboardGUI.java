@@ -4,6 +4,12 @@
  */
 package secureaccess;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+
 /**
  *
  * @author vvtat
@@ -12,14 +18,100 @@ public class DashboardGUI extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(DashboardGUI.class.getName());
 
+    private final SessionManager sessionManager;
+    private final String userEmail;
+    private final DefaultListModel<PasswordEntry> passwordListModel;
+    
     /**
      * Creates new form DashboardGUI
      */
     public DashboardGUI() {
+        this.sessionManager = null;
+        this.userEmail = null;
+        this.passwordListModel = new DefaultListModel<>();
+        initComponents();        
+    }
+    
+    /**
+     * Creates new form DashboardGUI with session information.
+     * @param sm The active SessionManager instance.
+     * @param username The username of the logged-in user.
+     */
+//    public DashboardGUI(SessionManager sm, String username) {
+//        this.sessionManager = sm;
+//        this.username = username;
+//        initComponents();
+//        // Update the title label to show the logged-in user
+//        if (username != null && !username.isEmpty()) {
+//            titleLBL.setText("Welcome to Secure Access, " + username + "!");
+//        } else {
+//            titleLBL.setText("Welcome to Secure Access!");
+//        }
+//        this.setLocationRelativeTo(null); // Center the window
+//    }
+    
+    public DashboardGUI(SessionManager sm, String userEmail) {
+        this.sessionManager = sm;
+        this.userEmail = userEmail; // Use userEmail
+        this.passwordListModel = new DefaultListModel<>(); // Initialize model
         initComponents();
         
+        // Setup JList model and listener
+        jList1.setModel(passwordListModel);
+        jList1.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                JList list = (JList)evt.getSource();
+                if (evt.getClickCount() == 2) { // Double-click to view password
+                    int index = list.locationToIndex(evt.getPoint());
+                    if (index >= 0) {
+                        viewPassword(passwordListModel.getElementAt(index));
+                    }
+                }
+            }
+        });
+        
+        // Update the title label to show the logged-in user
+        if (userEmail != null && !userEmail.isEmpty()) {
+            titleLBL.setText("Welcome to Secure Access, " + userEmail + "!");
+        } else {
+            titleLBL.setText("Welcome to Secure Access!");
+        }
+        this.setLocationRelativeTo(null); // Center the window
+        
+        // Load passwords when dashboard opens
+        refreshPasswordList(); 
+    }
+    
+    /**
+     * Loads all password entries for the current user and updates the JList.
+     */
+    public void refreshPasswordList() {
+        sessionManager.touch(); // Keep session alive
+        passwordListModel.clear();
+        List<PasswordEntry> entries = DBhelper.getAllPasswords(userEmail); // userEmail is used here
+        for (PasswordEntry entry : entries) {
+            passwordListModel.addElement(entry);
+        }
+        titleLBL.setText("My Passwords (" + entries.size() + ")");
     }
 
+    /**
+     * Handles the display of a single password entry.
+     * @param entry The PasswordEntry to view.
+     */
+    private void viewPassword(PasswordEntry entry) {
+        // 1. Touch the session to reset the idle timer
+        if (sessionManager != null) {
+            sessionManager.touch();
+        }
+        
+        // 2. Hide the current dashboard window
+        this.setVisible(false);
+        
+        // 3. Show the ViewPassword GUI, passing the specific entry
+        new ViewPasswordGUI(sessionManager, userEmail, entry, this).setVisible(true);
+    }
   
     /**
      * This method is called from within the constructor to initialize the form.
@@ -37,7 +129,7 @@ public class DashboardGUI extends javax.swing.JFrame {
         viewPasswordsBtn = new javax.swing.JButton();
         addPasswordBtn = new javax.swing.JButton();
         logoLBL = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        twoFASetupBTN = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JSeparator();
         titleLBL = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
@@ -55,20 +147,40 @@ public class DashboardGUI extends javax.swing.JFrame {
 
         logoutBtn.setBackground(new java.awt.Color(0, 193, 193));
         logoutBtn.setText("LOGOUT");
+        logoutBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logoutBtnActionPerformed(evt);
+            }
+        });
 
         viewPasswordsBtn.setBackground(new java.awt.Color(0, 163, 163));
         viewPasswordsBtn.setText("My Passwords");
+        viewPasswordsBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                viewPasswordsBtnActionPerformed(evt);
+            }
+        });
 
         addPasswordBtn.setBackground(new java.awt.Color(0, 173, 173));
         addPasswordBtn.setText("Add Password");
+        addPasswordBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addPasswordBtnActionPerformed(evt);
+            }
+        });
 
         logoLBL.setBackground(new java.awt.Color(255, 255, 255));
         logoLBL.setFont(new java.awt.Font("HP Simplified Hans", 1, 24)); // NOI18N
         logoLBL.setForeground(new java.awt.Color(255, 255, 255));
         logoLBL.setText("SECURE ACCESS");
 
-        jButton1.setBackground(new java.awt.Color(0, 183, 183));
-        jButton1.setText("2FA Activation");
+        twoFASetupBTN.setBackground(new java.awt.Color(0, 183, 183));
+        twoFASetupBTN.setText("2FA Activation");
+        twoFASetupBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                twoFASetupBTNActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout sidebarPanelLayout = new javax.swing.GroupLayout(sidebarPanel);
         sidebarPanel.setLayout(sidebarPanelLayout);
@@ -81,10 +193,9 @@ public class DashboardGUI extends javax.swing.JFrame {
                         .addGroup(sidebarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(viewPasswordsBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(sidebarPanelLayout.createSequentialGroup()
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(sidebarPanelLayout.createSequentialGroup()
-                                .addComponent(addPasswordBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(sidebarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(twoFASetupBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(addPasswordBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(0, 0, Short.MAX_VALUE))))
                     .addGroup(sidebarPanelLayout.createSequentialGroup()
                         .addGroup(sidebarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -107,7 +218,7 @@ public class DashboardGUI extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(addPasswordBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(twoFASetupBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(logoutBtn)
                 .addGap(26, 26, 26))
@@ -119,11 +230,6 @@ public class DashboardGUI extends javax.swing.JFrame {
 
         jPanel2.setBackground(new java.awt.Color(0, 102, 102));
 
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
         jScrollPane1.setViewportView(jList1);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -193,6 +299,64 @@ public class DashboardGUI extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void viewPasswordsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewPasswordsBtnActionPerformed
+        // TODO add your handling code here:
+        // 1. Touch the session to reset the idle timer
+        if (sessionManager != null) {
+            sessionManager.touch();
+        }
+        
+//        // 2. Hide the current dashboard window
+//        this.setVisible(false);
+//        
+//        // 3. Show the ViewPasswords GUI
+//        // Note: New GUI instance is created and linked to the active session
+//        new ViewPasswordGUI(sessionManager, username).setVisible(true);
+        refreshPasswordList();
+        titleLBL.setText("My Passwords");
+
+    }//GEN-LAST:event_viewPasswordsBtnActionPerformed
+
+    private void addPasswordBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPasswordBtnActionPerformed
+        // TODO add your handling code here:
+        // 1. Touch the session to reset the idle timer
+        if (sessionManager != null) {
+            sessionManager.touch();
+        }
+        
+//        // 2. Hide the current dashboard window
+//        this.setVisible(false);
+//        
+//        // 3. Show the AddPassword GUI
+//        // Note: New GUI instance is created and linked to the active session
+//        new AddPasswordGUI(sessionManager, username).setVisible(true);
+    
+        if (sessionManager != null) {
+            sessionManager.touch();
+        }
+        this.setVisible(false);
+        // Pass 'this' (the DashboardGUI) so AddPasswordGUI can call refreshPasswordList() on return
+        new AddPasswordGUI(sessionManager, userEmail, this).setVisible(true);
+    }//GEN-LAST:event_addPasswordBtnActionPerformed
+
+    private void twoFASetupBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_twoFASetupBTNActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_twoFASetupBTNActionPerformed
+
+    private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
+        // TODO add your handling code here:
+        // 1. Stop the session (logs out the user and clears the token/idle monitor)
+        if (sessionManager != null) {
+            sessionManager.stop();
+        }
+        
+        // 2. Hide the current dashboard window
+        this.dispose();
+        
+        // 3. Show the login GUI
+        new loginGUI().setVisible(true);
+    }//GEN-LAST:event_logoutBtnActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -221,8 +385,7 @@ public class DashboardGUI extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addPasswordBtn;
     private javax.swing.JPanel background;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JList<String> jList1;
+    private javax.swing.JList<PasswordEntry> jList1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator2;
@@ -231,6 +394,7 @@ public class DashboardGUI extends javax.swing.JFrame {
     private javax.swing.JPanel sidebarPanel;
     private javax.swing.JSeparator sidebarSeparator;
     private javax.swing.JLabel titleLBL;
+    private javax.swing.JButton twoFASetupBTN;
     private javax.swing.JButton viewPasswordsBtn;
     // End of variables declaration//GEN-END:variables
 }

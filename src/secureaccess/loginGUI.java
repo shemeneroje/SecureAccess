@@ -5,6 +5,7 @@
 package secureaccess;
 
 import java.awt.Color;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -12,11 +13,29 @@ import java.awt.Color;
  */
 public class loginGUI extends javax.swing.JFrame {
 
+    //@author Virginiah
+    // Added new Fields: Needed to handle session management and encryption keys
+    private final SessionManager sessionManager;
+    private final byte[] aesKey;
+    private static final long SESSION_TIMEOUT_MS = 1800000; // 30 minutes (Shauna to change according to the timeout)
+    private static final long WARNING_TIME_MS = 60000;    // 1 minute warning
     /**
      * Creates new form loginGUI
      */
     public loginGUI() {
+        // access the AES KEY
+        this.aesKey = EncryptionUtil.getAESKey(); // Accessing the statically loaded key from the EncryptionUtil class
+        if (this.aesKey == null) {
+            // FATAL: The application cannot proceed without the master key
+            JOptionPane.showMessageDialog(null, "FATAL: Encryption key is missing. Application cannot start.", "Error", JOptionPane.ERROR_MESSAGE);
+            // Optionally: System.exit(1); 
+        }
+        
+        // Initialize the SessionManager with the key
+        this.sessionManager = new SessionManager(this.aesKey);
+        
         initComponents();
+        this.setLocationRelativeTo(null); // Center the window
     }
 
     /**
@@ -53,6 +72,11 @@ public class loginGUI extends javax.swing.JFrame {
         submitJbtn.setFont(new java.awt.Font("Corbel", 0, 14)); // NOI18N
         submitJbtn.setForeground(new java.awt.Color(255, 255, 255));
         submitJbtn.setText("SUBMIT");
+        submitJbtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                submitJbtnActionPerformed(evt);
+            }
+        });
 
         jSeparator6.setBackground(new java.awt.Color(102, 66, 41));
         jSeparator6.setForeground(new java.awt.Color(102, 66, 41));
@@ -250,6 +274,61 @@ public class loginGUI extends javax.swing.JFrame {
         myGUI.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_accountJbtnActionPerformed
+
+    private void submitJbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitJbtnActionPerformed
+        // TODO add your handling code here:
+        //Check if password and email is correct
+        //Login if correct
+        String userEmail = emailJtf.getText().trim().toLowerCase();
+        char[] inputPassword = passwordJpf.getPassword();
+        
+        // 1. Input Validation
+        if (userEmail.isEmpty() || userEmail.equals("enter your email")) {
+            JOptionPane.showMessageDialog(this, "Please enter your email.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (inputPassword.length == 0 || new String(inputPassword).equals("Enter your password")) {
+            JOptionPane.showMessageDialog(this, "Please enter your password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 2. Retrieve the stored hashed password from the database
+        String storedHashedPassword = DBhelper.getHashedPasswordByEmail(userEmail);
+        
+        // 3. Check for Null/Non-existent User
+        if (storedHashedPassword == null) {
+            JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 4. Hash the user's input password
+        String inputHashedPassword = Hashing.hashPassword(inputPassword);
+        
+        // Clear the password array immediately after hashing for security
+        java.util.Arrays.fill(inputPassword, ' '); 
+
+        // 5. Compare the hashes for authentication
+        if (storedHashedPassword.equals(inputHashedPassword)) {
+            
+            // Authentication SUCCESSFUL! -> REDIRECTION CODE HERE
+
+            // 6. Start the session
+            // The session token is returned but not strictly needed for UI navigation
+            sessionManager.startSession(userEmail, SESSION_TIMEOUT_MS, WARNING_TIME_MS);
+            
+            // 7. Hide the current login window
+            this.dispose();
+            
+            // 8. Open the Dashboard
+            // Pass the active SessionManager and the user's email to the Dashboard
+            new DashboardGUI(sessionManager, userEmail).setVisible(true);
+            
+        } else {
+            // Authentication FAILED
+            JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+        }
+       
+    }//GEN-LAST:event_submitJbtnActionPerformed
 
     /**
      * @param args the command line arguments

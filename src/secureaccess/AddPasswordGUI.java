@@ -4,6 +4,9 @@
  */
 package secureaccess;
 
+import java.awt.Color;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author vvtat
@@ -12,13 +15,95 @@ public class AddPasswordGUI extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AddPasswordGUI.class.getName());
 
+    private final SessionManager sessionManager;
+    private final String userEmail;
+    private final DashboardGUI parentDashboard; // Reference to refresh the list
     /**
      * Creates new form AddPasswordGUI
      */
     public AddPasswordGUI() {
+        this.sessionManager = null;
+        this.userEmail = null;
+        this.parentDashboard = null;
+        setupPasswordListener();
         initComponents();
     }
+    
+    /**
+     * Creates new form AddPasswordGUI with session information.
+     */
+    public AddPasswordGUI(SessionManager sm, String userEmail, DashboardGUI parent) {
+        this.sessionManager = sm;
+        this.userEmail = userEmail;
+        this.parentDashboard = parent;
+        initComponents();
+        this.setLocationRelativeTo(null); // Center the window
+        // Set initial state for password field to hide characters
+        passwordTF.setEchoChar('*'); 
+        setupPasswordListener(); // Setup listener for strength check
+    }
+    
+    //method to handle password strength checking
+    private void setupPasswordListener() {
+        passwordTF.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                checkPasswordStrength();
+            }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                checkPasswordStrength();
+            }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                checkPasswordStrength();
+            }
+        });
+        // Initial check for default text
+        checkPasswordStrength(); 
+    }
+    
+    /**
+     * Calculates and updates the password strength progress bar and label.
+     */
+    private void checkPasswordStrength() {
+        String password = new String(passwordTF.getPassword());
+        if (password.isEmpty()) {
+            pswStrengthProgressBar.setValue(0);
+            pswStrengthLBL.setText("Strength: N/A");
+            pswStrengthProgressBar.setForeground(Color.GRAY);
+            return;
+        }
 
+        int score = PasswordStrengthUtil.calculateStrength(password); // Requires PasswordStrengthUtil
+        pswStrengthProgressBar.setValue(score);
+
+        // Update color and label based on score (0-100)
+        if (score < 25) {
+            pswStrengthProgressBar.setForeground(Color.RED);
+            pswStrengthLBL.setText("Strength: Weak");
+        } else if (score < 50) {
+            pswStrengthProgressBar.setForeground(Color.ORANGE);
+            pswStrengthLBL.setText("Strength: Fair");
+        } else if (score < 75) {
+            pswStrengthProgressBar.setForeground(Color.YELLOW);
+            pswStrengthLBL.setText("Strength: Good");
+        } else {
+            pswStrengthProgressBar.setForeground(Color.GREEN);
+            pswStrengthLBL.setText("Strength: Strong");
+        }
+    }
+    
+    // Helper method to transition back to the dashboard
+    private void returnToDashboard() {
+        if (sessionManager != null) sessionManager.touch();
+        this.dispose();
+        if (parentDashboard != null) {
+            parentDashboard.refreshPasswordList();
+            parentDashboard.setVisible(true);
+        } else {
+             // Fallback if accessed directly (e.g., from main())
+             new DashboardGUI(sessionManager, userEmail).setVisible(true);
+        }
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -56,6 +141,11 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         backBTN.setBackground(new java.awt.Color(0, 51, 51));
         backBTN.setForeground(new java.awt.Color(255, 255, 255));
         backBTN.setText("← Back");
+        backBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backBTNActionPerformed(evt);
+            }
+        });
 
         titleLBL.setFont(new java.awt.Font("HP Simplified Hans", 1, 24)); // NOI18N
         titleLBL.setForeground(new java.awt.Color(255, 255, 255));
@@ -88,9 +178,19 @@ public class AddPasswordGUI extends javax.swing.JFrame {
 
         viewBTN.setForeground(new java.awt.Color(255, 255, 255));
         viewBTN.setText("view");
+        viewBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                viewBTNActionPerformed(evt);
+            }
+        });
 
         generatePswBTN.setBackground(new java.awt.Color(0, 153, 153));
         generatePswBTN.setText("Generate");
+        generatePswBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                generatePswBTNActionPerformed(evt);
+            }
+        });
 
         pswStrengthLBL.setForeground(new java.awt.Color(255, 255, 255));
         pswStrengthLBL.setText("Strength :");
@@ -120,13 +220,11 @@ public class AddPasswordGUI extends javax.swing.JFrame {
                         .addComponent(pswStrengthLBL)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pswStrengthProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(categoryTF, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
-                            .addComponent(categoryLBL, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(urlLBL, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(urlTF))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(categoryTF, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                        .addComponent(categoryLBL, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(urlLBL, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(urlTF)))
                 .addGap(24, 24, 24))
         );
         jPanel1Layout.setVerticalGroup(
@@ -163,6 +261,11 @@ public class AddPasswordGUI extends javax.swing.JFrame {
 
         saveBTN.setBackground(new java.awt.Color(0, 204, 204));
         saveBTN.setText("SAVE");
+        saveBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveBTNActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout backgroundLayout = new javax.swing.GroupLayout(background);
         background.setLayout(backgroundLayout);
@@ -222,6 +325,68 @@ public class AddPasswordGUI extends javax.swing.JFrame {
     private void usernameTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_usernameTFActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_usernameTFActionPerformed
+
+    private void backBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backBTNActionPerformed
+        // TODO add your handling code here:
+        returnToDashboard();
+    }//GEN-LAST:event_backBTNActionPerformed
+
+    private void viewBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewBTNActionPerformed
+        // TODO add your handling code here:
+        if (sessionManager != null) sessionManager.touch();
+        if (viewBTN.isSelected()) {
+            passwordTF.setEchoChar((char) 0); // Show password
+        } else {
+            passwordTF.setEchoChar('*'); // Hide password
+        }
+    }//GEN-LAST:event_viewBTNActionPerformed
+
+    private void generatePswBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generatePswBTNActionPerformed
+        // TODO add your handling code here:
+        if (sessionManager != null) sessionManager.touch();
+        // Generates a 16-character strong password
+        String generated = CryptoUtils.generateStrongPassword(16); // Requires CryptoUtils method
+        passwordTF.setText(generated);
+        checkPasswordStrength();
+    }//GEN-LAST:event_generatePswBTNActionPerformed
+
+    private void saveBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBTNActionPerformed
+        // TODO add your handling code here:
+        if (sessionManager != null) sessionManager.touch();
+        
+        String name = sitenameTF.getText().trim();
+        String username = usernameTF.getText().trim();
+        String password = new String(passwordTF.getPassword());
+        String url = urlTF.getText().trim();
+        String category = categoryTF.getText().trim();
+        
+        // Basic Validation
+        if (name.isEmpty() || username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Site Name, Username/Email, and Password are required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // 1. Encrypt the plaintext password
+        String encryptedPassword = EncryptionUtil.encrypt(password);
+        if (encryptedPassword == null) {
+             JOptionPane.showMessageDialog(this, "Error encrypting password. Check application logs.", "Encryption Error", JOptionPane.ERROR_MESSAGE);
+             return;
+        }
+        
+        // 2. Create the PasswordEntry object
+        PasswordEntry newEntry = new PasswordEntry(userEmail, name, username, url, category);
+        newEntry.setEncryptedPassword(encryptedPassword);
+
+        // 3. Save to database
+        boolean success = DBhelper.savePassword(newEntry);
+        
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Password saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            returnToDashboard();
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to save password to database.", "DB Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_saveBTNActionPerformed
 
     /**
      * @param args the command line arguments

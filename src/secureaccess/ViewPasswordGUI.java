@@ -4,6 +4,9 @@
  */
 package secureaccess;
 
+import java.awt.Color;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author vvtat
@@ -12,11 +15,108 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(ViewPasswordGUI.class.getName());
 
+    private final SessionManager sessionManager;
+    private final String userEmail;
+    private final DashboardGUI parentDashboard;
+    private PasswordEntry currentEntry;
+    private boolean isEditing = false; //to track edit mode
     /**
      * Creates new form PasswordCardGUI
      */
     public ViewPasswordGUI() {
+        this.sessionManager = null;
+        this.userEmail = "";
+        this.parentDashboard = null;
         initComponents();
+    }
+    
+    /**
+     * Creates new form ViewPasswordGUI with session information and a specific entry.
+     */
+    public ViewPasswordGUI(SessionManager sm, String userEmail, PasswordEntry entry, DashboardGUI parent) {
+        this.sessionManager = sm;
+        this.userEmail = userEmail;
+        this.currentEntry = entry;
+        this.parentDashboard = parent;
+        initComponents();
+        this.setLocationRelativeTo(null); // Center the window
+        // Set initial state for password field
+        passwordTF.setEchoChar('*'); 
+        
+        // Populate fields with data
+        loadEntryData();
+        // Set up initial state (not editable)
+        setEditMode(false); 
+    }
+    
+    private void loadEntryData() {
+        if (currentEntry == null) return;
+        siteTF.setText(currentEntry.getName());
+        usernameTF.setText(currentEntry.getUsername());
+        urlTF.setText(currentEntry.getUrl());
+        categoryTF.setText(currentEntry.getCategory());
+        
+        // Decrypt and display password strength
+        String decryptedPsw = EncryptionUtil.decrypt(currentEntry.getEncryptedPassword());
+        passwordTF.setText(decryptedPsw);
+        checkPasswordStrength(decryptedPsw);
+        
+        // Immediately hide the decrypted password
+        passwordTF.setText(decryptedPsw); 
+        passwordTF.setEchoChar('*'); 
+    }
+    
+    private void setEditMode(boolean editMode) {
+        isEditing = editMode;
+        // Fields' editability
+        siteTF.setEditable(editMode);
+        usernameTF.setEditable(editMode);
+        passwordTF.setEditable(editMode);
+        urlTF.setEditable(editMode);
+        categoryTF.setEditable(editMode);
+        
+        // Button visibility/text
+        saveBTN.setVisible(editMode);
+        editBTN.setText(editMode ? "CANCEL" : "EDIT");
+        jButton1.setVisible(!editMode); // DELETE button visible only when NOT editing
+    }
+    
+    private void checkPasswordStrength(String password) {
+        if (password == null || password.isEmpty()) {
+            pswdProgressBar.setValue(0);
+            passwordStrengthLBL.setText("Password Strength: N/A");
+            pswdProgressBar.setForeground(Color.GRAY);
+            return;
+        }
+
+        int score = PasswordStrengthUtil.calculateStrength(password);
+        pswdProgressBar.setValue(score);
+
+        if (score < 25) {
+            pswdProgressBar.setForeground(Color.RED);
+            passwordStrengthLBL.setText("Strength: Weak");
+        } else if (score < 50) {
+            pswdProgressBar.setForeground(Color.ORANGE);
+            passwordStrengthLBL.setText("Strength: Fair");
+        } else if (score < 75) {
+            pswdProgressBar.setForeground(Color.YELLOW);
+            passwordStrengthLBL.setText("Strength: Good");
+        } else {
+            pswdProgressBar.setForeground(Color.GREEN);
+            passwordStrengthLBL.setText("Strength: Strong");
+        }
+    }
+    
+    // Helper method to transition back to the dashboard
+    private void returnToDashboard() {
+        if (sessionManager != null) sessionManager.touch();
+        this.dispose();
+        if (parentDashboard != null) {
+            parentDashboard.refreshPasswordList();
+            parentDashboard.setVisible(true);
+        } else {
+             new DashboardGUI(sessionManager, userEmail).setVisible(true);
+        }
     }
 
     /**
@@ -69,6 +169,11 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
 
         viewPswBTN.setForeground(new java.awt.Color(255, 255, 255));
         viewPswBTN.setText("view");
+        viewPswBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                viewPswBTNActionPerformed(evt);
+            }
+        });
 
         passwordStrengthLBL.setForeground(new java.awt.Color(255, 255, 255));
         passwordStrengthLBL.setText("Password Strength");
@@ -88,10 +193,20 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         editBTN.setBackground(new java.awt.Color(0, 153, 153));
         editBTN.setForeground(new java.awt.Color(102, 255, 255));
         editBTN.setText("EDIT");
+        editBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                editBTNActionPerformed(evt);
+            }
+        });
 
         jButton1.setBackground(new java.awt.Color(153, 0, 0));
         jButton1.setForeground(new java.awt.Color(255, 153, 153));
         jButton1.setText("DELETE");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -115,10 +230,10 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(pswdProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 208, Short.MAX_VALUE)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(editBTN)
-                                    .addComponent(jButton1))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 100, Short.MAX_VALUE)
+                                .addComponent(editBTN)
+                                .addGap(36, 36, 36)
+                                .addComponent(jButton1)
                                 .addGap(18, 18, 18))))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -133,10 +248,8 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap(29, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(siteLBL)
-                    .addComponent(editBTN))
+                .addContainerGap(32, Short.MAX_VALUE)
+                .addComponent(siteLBL)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(siteTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(11, 11, 11)
@@ -161,7 +274,8 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(categoryTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(jButton1)
+                    .addComponent(editBTN))
                 .addGap(18, 18, 18))
         );
 
@@ -172,10 +286,20 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         backBTN.setBackground(new java.awt.Color(0, 51, 51));
         backBTN.setForeground(new java.awt.Color(255, 255, 255));
         backBTN.setText("← Back");
+        backBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backBTNActionPerformed(evt);
+            }
+        });
 
         saveBTN.setBackground(new java.awt.Color(0, 204, 204));
         saveBTN.setForeground(new java.awt.Color(0, 51, 51));
         saveBTN.setText("SAVE");
+        saveBTN.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveBTNActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout backgroundLayout = new javax.swing.GroupLayout(background);
         background.setLayout(backgroundLayout);
@@ -215,7 +339,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(saveBTN))
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -237,6 +361,118 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
     private void urlTFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_urlTFActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_urlTFActionPerformed
+
+    private void backBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backBTNActionPerformed
+        // TODO add your handling code here:
+        returnToDashboard();
+    }//GEN-LAST:event_backBTNActionPerformed
+
+    private void viewPswBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewPswBTNActionPerformed
+        // TODO add your handling code here:
+        if (sessionManager != null) sessionManager.touch();
+        if (viewPswBTN.isSelected()) {
+            // Decrypt on demand when viewing
+            String decryptedPsw = EncryptionUtil.decrypt(currentEntry.getEncryptedPassword());
+            if (decryptedPsw.equals("[Decryption Failed]")) {
+                 JOptionPane.showMessageDialog(this, "Decryption failed. Data may be corrupted.", "Security Error", JOptionPane.ERROR_MESSAGE);
+                 viewPswBTN.setSelected(false);
+                 return;
+            }
+            passwordTF.setText(decryptedPsw);
+            passwordTF.setEchoChar((char) 0); // Show password
+        } else {
+            // Restore hidden state
+            passwordTF.setEchoChar('*'); // Hide password
+            // Re-populate from current state to ensure the visible password is set if edited
+            String currentPassword = new String(passwordTF.getPassword());
+            passwordTF.setText(currentPassword); 
+        }
+    }//GEN-LAST:event_viewPswBTNActionPerformed
+
+    private void saveBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveBTNActionPerformed
+        // TODO add your handling code here:
+        if (sessionManager != null) sessionManager.touch();
+        
+        String name = siteTF.getText().trim();
+        String username = usernameTF.getText().trim();
+        String password = new String(passwordTF.getPassword());
+        String url = urlTF.getText().trim();
+        String category = categoryTF.getText().trim();
+        
+        // Basic Validation
+        if (name.isEmpty() || username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Site Name, Username/Email, and Password are required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // 1. Encrypt the new/modified password
+        String encryptedPassword = EncryptionUtil.encrypt(password);
+        if (encryptedPassword == null) {
+             JOptionPane.showMessageDialog(this, "Error encrypting password. Check application logs.", "Encryption Error", JOptionPane.ERROR_MESSAGE);
+             return;
+        }
+
+        // 2. Update the PasswordEntry object with new values
+        currentEntry.setName(name);
+        currentEntry.setUsername(username);
+        currentEntry.setUrl(url);
+        currentEntry.setCategory(category);
+        currentEntry.setEncryptedPassword(encryptedPassword); // Save the new encrypted blob
+
+        // 3. Update database
+        boolean success = DBhelper.updatePassword(currentEntry);
+        
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            setEditMode(false); // Exit edit mode
+            // Manually update the strength display since we've changed the password
+            checkPasswordStrength(password); 
+            // Also need to reset the echo char for security
+            passwordTF.setEchoChar('*');
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to update password in database.", "DB Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_saveBTNActionPerformed
+
+    private void editBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editBTNActionPerformed
+        // TODO add your handling code here:
+        if (sessionManager != null) sessionManager.touch();
+        
+        if (isEditing) {
+            // CANCEL action: Revert changes and exit edit mode
+            loadEntryData(); // Reload original data
+            setEditMode(false);
+            // Hide password on exit from edit mode for security
+            viewPswBTN.setSelected(false);
+            passwordTF.setEchoChar('*');
+        } else {
+            // EDIT action: Enter edit mode
+            setEditMode(true);
+            // Show password immediately on entering edit mode for easy editing
+            viewPswBTN.setSelected(true);
+            passwordTF.setEchoChar((char) 0);
+        }
+    }//GEN-LAST:event_editBTNActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        if (sessionManager != null) sessionManager.touch();
+        
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Are you sure you want to delete the entry for " + currentEntry.getName() + "?", 
+            "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            boolean success = DBhelper.deletePassword(currentEntry.getId(), userEmail);
+            
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Password entry deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                returnToDashboard(); // Go back to the dashboard, which will refresh the list
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete password entry.", "DB Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments

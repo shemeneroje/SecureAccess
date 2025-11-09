@@ -31,15 +31,25 @@ public class PasswordEntry {
     }
     
     // Constructor for adding new entry (ID is set by the DB)
-    public PasswordEntry(String userEmail, String name, String username, String encryptedPassword, String url, String category, String notes) {
-        // ID to be set by the database
-        this.userEmail = userEmail;
-        this.name = name;
-        this.username = username;
-        this.encryptedPassword = encryptedPassword;
-        this.url = url;
-        this.category = category;
-        this.notes = notes;
+//    public PasswordEntry(String userEmail, String name, String username, String encryptedPassword, String url, String category, String notes) {
+//        // ID to be set by the database
+//        this.userEmail = userEmail;
+//        this.name = name;
+//        this.username = username;
+//        this.encryptedPassword = encryptedPassword;
+//        this.url = url;
+//        this.category = category;
+//        this.notes = notes;
+//    }
+    
+    // Constructor for a new entry (without ID or encrypted password yet)
+    public PasswordEntry(String userEmail, String name, String username, String url, String category) {
+        this(0, userEmail, name, username, null, url, category, null);
+    }
+    
+    // Minimal constructor for initial creation in GUI
+    public PasswordEntry(String userEmail) {
+        this(0, userEmail, "", "", null, "", "", null);
     }
 
     public int getId() {
@@ -109,7 +119,7 @@ public class PasswordEntry {
     //To display on the dashboard list
     @Override
     public String toString() {
-        return  name + "\n" + username;
+        return  name + " (" + username + ")";
     }
 
     
