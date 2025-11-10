@@ -277,6 +277,7 @@ public class loginGUI extends javax.swing.JFrame {
 
     private void submitJbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitJbtnActionPerformed
         // TODO add your handling code here:
+        //@Author Virginiah
         //Check if password and email is correct
         //Login if correct
         String userEmail = emailJtf.getText().trim().toLowerCase();

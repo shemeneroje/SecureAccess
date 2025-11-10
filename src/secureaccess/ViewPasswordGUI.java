@@ -20,9 +20,8 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
     private final DashboardGUI parentDashboard;
     private PasswordEntry currentEntry;
     private boolean isEditing = false; //to track edit mode
-    /**
-     * Creates new form PasswordCardGUI
-     */
+    
+    //Creates new form PasswordCardGUI
     public ViewPasswordGUI() {
         this.sessionManager = null;
         this.userEmail = "";
@@ -30,9 +29,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         initComponents();
     }
     
-    /**
-     * Creates new form ViewPasswordGUI with session information and a specific entry.
-     */
+    //Creates a new form ViewPasswordGUI with session information and a specific entry.
     public ViewPasswordGUI(SessionManager sm, String userEmail, PasswordEntry entry, DashboardGUI parent) {
         this.sessionManager = sm;
         this.userEmail = userEmail;
@@ -66,6 +63,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         passwordTF.setEchoChar('*'); 
     }
     
+    //For editting state
     private void setEditMode(boolean editMode) {
         isEditing = editMode;
         // Fields' editability
@@ -81,6 +79,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         jButton1.setVisible(!editMode); // DELETE button visible only when NOT editing
     }
     
+    //Password strength checker
     private void checkPasswordStrength(String password) {
         if (password == null || password.isEmpty()) {
             pswdProgressBar.setValue(0);
@@ -425,7 +424,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         if (success) {
             JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             setEditMode(false); // Exit edit mode
-            // Manually update the strength display since we've changed the password
+            // Manually update the strength display since  the password changed
             checkPasswordStrength(password); 
             // Also need to reset the echo char for security
             passwordTF.setEchoChar('*');

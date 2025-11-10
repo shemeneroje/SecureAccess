@@ -353,7 +353,10 @@ public class DashboardGUI extends javax.swing.JFrame {
         // 2. Hide the current dashboard window
         this.dispose();
         
-        // 3. Show the login GUI
+        //3. Securely wipe the master encryption key from memory
+        EncryptionUtil.wipeKey();
+        
+        // 4. Show the login GUI
         new loginGUI().setVisible(true);
     }//GEN-LAST:event_logoutBtnActionPerformed
 

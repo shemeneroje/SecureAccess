@@ -23,10 +23,10 @@ public class PasswordStrengthUtil {
         int score = 0;
         int length = password.length();
 
-        // 1. Length Bonus
+        // 1. Length Bonus (If the legth is a min of 20) add score 
         score += Math.min(20, length * 2);
 
-        // 2. Character Set Diversity
+        // 2. Character Set Diversity (upperCase, lowerCase, a digit and a symbol)
         boolean hasUpper = !password.equals(password.toLowerCase());
         boolean hasLower = !password.equals(password.toUpperCase());
         boolean hasDigit = password.matches(".*\\d.*");
@@ -39,8 +39,8 @@ public class PasswordStrengthUtil {
         
         // Bonus for having multiple types
         int typeCount = (hasUpper ? 1 : 0) + (hasLower ? 1 : 0) + (hasDigit ? 1 : 0) + (hasSymbol ? 1 : 0);
-        if (typeCount >= 3) score += 5;
+        if (typeCount >= 3) score += 5; //adding score of 5 if it has more than or 3 character sets
 
-        return Math.min(100, score); // Cap the score at 100
+        return Math.min(100, score); // Limitting the score at 100
     }
 }

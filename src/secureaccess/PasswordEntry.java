@@ -9,16 +9,16 @@ package secureaccess;
  * @author vvtat
  */
 public class PasswordEntry {
-    private int id;
+    private int id;  //unique identifier of the password entry
     private String userEmail; // The email of the user who owns this password entry
     private String name; // Name of the service/website (e.g., "Google", "Twitter")
     private String username; // The login username or email for that service
     private String encryptedPassword; // The encrypted password string
-    private String url;
-    private String category;
-    private String notes;
+    private String url; //the url to access the service
+    private String category; //category, eg, shopping(for amazon password)
+    private String notes; //any additional notes
 
-    //with all parameters to view for all passwords page
+    //with all parameters to view for all passwords page (viewPasswordGUI)
     public PasswordEntry(int id, String userEmail, String name, String username, String encryptedPassword, String url, String category, String notes) {
         this.id = id;
         this.userEmail = userEmail;
@@ -42,7 +42,7 @@ public class PasswordEntry {
 //        this.notes = notes;
 //    }
     
-    // Constructor for a new entry (without ID or encrypted password yet)
+    // Constructor for a new entry (without ID or encrypted password yet) fo a addPasswordGUI
     public PasswordEntry(String userEmail, String name, String username, String url, String category) {
         this(0, userEmail, name, username, null, url, category, null);
     }
@@ -52,6 +52,7 @@ public class PasswordEntry {
         this(0, userEmail, "", "", null, "", "", null);
     }
 
+    //setters and getters
     public int getId() {
         return id;
     }
@@ -121,8 +122,6 @@ public class PasswordEntry {
     public String toString() {
         return  name + " (" + username + ")";
     }
-
-    
-    
+   
     
 }

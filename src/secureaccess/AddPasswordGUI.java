@@ -29,9 +29,7 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         initComponents();
     }
     
-    /**
-     * Creates new form AddPasswordGUI with session information.
-     */
+    //Creates new form AddPasswordGUI with session information. 
     public AddPasswordGUI(SessionManager sm, String userEmail, DashboardGUI parent) {
         this.sessionManager = sm;
         this.userEmail = userEmail;
@@ -60,9 +58,7 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         checkPasswordStrength(); 
     }
     
-    /**
-     * Calculates and updates the password strength progress bar and label.
-     */
+    //Calculates and updates the password strength progress bar and label.
     private void checkPasswordStrength() {
         String password = new String(passwordTF.getPassword());
         if (password.isEmpty()) {
@@ -360,9 +356,39 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         String url = urlTF.getText().trim();
         String category = categoryTF.getText().trim();
         
-        // Basic Validation
+        // Basic Validation to check for all required inputs
         if (name.isEmpty() || username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Site Name, Username/Email, and Password are required.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        //Data Size Validation (Assuming MAX_LEN of 255 for  text fields)
+        final int MAX_LEN = 255;
+        if (name.length() > MAX_LEN) {
+            JOptionPane.showMessageDialog(this, "Site Name must be under " + MAX_LEN + " characters.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (username.length() > MAX_LEN) {
+            JOptionPane.showMessageDialog(this, "Username/Email must be under " + MAX_LEN + " characters.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (url.length() > MAX_LEN) {
+            JOptionPane.showMessageDialog(this, "URL must be under " + MAX_LEN + " characters.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (category.length() > MAX_LEN) {
+            JOptionPane.showMessageDialog(this, "Category must be under " + MAX_LEN + " characters.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        //Password Strength Policy Enforcement (dictating Minimum score of 50)
+        int strengthScore = PasswordStrengthUtil.calculateStrength(password);
+        final int MIN_STRENGTH = 50; 
+        
+        if (strengthScore < MIN_STRENGTH) {
+            JOptionPane.showMessageDialog(this, 
+                "Password strength is too low. Please use a stronger password (Minimum score: " + MIN_STRENGTH + ").", 
+                "Security Policy Violation", JOptionPane.ERROR_MESSAGE);
             return;
         }
         

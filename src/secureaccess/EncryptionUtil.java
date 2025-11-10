@@ -13,14 +13,13 @@ import javax.swing.JOptionPane;
  */
 
 /**
- * EncryptionUtil acts as the main interface for the application's
- * encryption and decryption operations. It handles loading the AES key
+ * This acts as the main interface for the application's encyption and decryption operations. It handles loading the AES key
  * via KeyManager and delegates cryptographic operations to CryptoUtils.
  */
 public class EncryptionUtil {
     private static byte[] AES_KEY = null;
 
-    // Static initializer block to ensure the key is loaded (or created) once
+    // a Static initializer to ensure the key is loaded or created once
     // when the class is first accessed.
     static {
         try {
@@ -42,7 +41,7 @@ public class EncryptionUtil {
      * Encrypts a plaintext password using the application's master AES key.
      * The result is a Base64-encoded string containing the IV and ciphertext.
      * * @param plainText The password to encrypt.
-     * @return The Base64-encoded encrypted string, or null on failure.
+     * returns The Base64-encoded encrypted string, or null on failure.
      */
     public static String encrypt(String plainText) {
         if (AES_KEY == null) {
@@ -62,7 +61,7 @@ public class EncryptionUtil {
      * Decrypts a Base64-encoded encrypted password blob using the application's 
      * master AES key.
      * * @param base64Blob The Base64-encoded string containing IV and ciphertext.
-     * @return The decrypted plaintext password, or null on failure.
+     * returns The decrypted plaintext password, or null on failure.
      */
     public static String decrypt(String base64Blob) {
         if (AES_KEY == null) {
@@ -82,8 +81,8 @@ public class EncryptionUtil {
         }
     }
     
-    // Optional: Method to securely hash master passwords for user login authentication
-    // Note: This relies on your existing Hashing.java for authentication!
+    // Method to securely hash the master passwords for user login authentication
+    // relies on the  Hashing.java for authentication
     public static String hashMasterPassword(char[] password) {
         return Hashing.hashPassword(password);
     }
@@ -91,10 +90,19 @@ public class EncryptionUtil {
     //Public static getter method to safely retrieve the key
     /**
      * Retrieves the application's master AES key.
-     * @return The AES key byte array, or null if initialization failed.
+     * returns The AES key byte array, or null if initialization failed.
      */
     public static byte[] getAESKey() {
         return AES_KEY;
+    }
+    
+    //Securely wipes the AES key from memory. Will be called on application exit/logout.
+    public static void wipeKey() {
+        if (AES_KEY != null) {
+            // Overwrite the array contents with zeros to securely wipe it from memory
+            java.util.Arrays.fill(AES_KEY, (byte) 0);
+            AES_KEY = null;
+        }
     }
     
 }
