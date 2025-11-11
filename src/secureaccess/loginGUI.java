@@ -23,6 +23,9 @@ public class loginGUI extends javax.swing.JFrame {
      * Creates new form loginGUI
      */
     public loginGUI() {
+        DBhelper.initializeUsersTable();
+        DBhelper.initializePasswordsTable();
+        
         // access the AES KEY
         this.aesKey = EncryptionUtil.getAESKey(); // Accessing the statically loaded key from the EncryptionUtil class
         if (this.aesKey == null) {

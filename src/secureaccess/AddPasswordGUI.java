@@ -128,6 +128,8 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         generatePswBTN = new javax.swing.JButton();
         pswStrengthLBL = new javax.swing.JLabel();
         pswStrengthProgressBar = new javax.swing.JProgressBar();
+        notesLBL = new javax.swing.JLabel();
+        notesTF = new javax.swing.JTextField();
         saveBTN = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -167,8 +169,6 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         urlLBL.setForeground(new java.awt.Color(255, 255, 255));
         urlLBL.setText("URL (Option)");
 
-        passwordTF.setText("jPasswordField1");
-
         categoryLBL.setForeground(new java.awt.Color(255, 255, 255));
         categoryLBL.setText("Category (Optional)");
 
@@ -190,6 +190,9 @@ public class AddPasswordGUI extends javax.swing.JFrame {
 
         pswStrengthLBL.setForeground(new java.awt.Color(255, 255, 255));
         pswStrengthLBL.setText("Strength :");
+
+        notesLBL.setForeground(new java.awt.Color(255, 255, 255));
+        notesLBL.setText("Notes (Optional)");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -216,11 +219,17 @@ public class AddPasswordGUI extends javax.swing.JFrame {
                         .addComponent(pswStrengthLBL)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(pswStrengthProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(categoryTF, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
-                        .addComponent(categoryLBL, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(urlLBL, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(urlTF)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(categoryTF, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
+                            .addComponent(categoryLBL, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(urlLBL, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(urlTF))
+                        .addGap(60, 60, 60)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(notesLBL)
+                            .addComponent(notesTF, javax.swing.GroupLayout.PREFERRED_SIZE, 205, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addGap(24, 24, 24))
         );
         jPanel1Layout.setVerticalGroup(
@@ -249,9 +258,13 @@ public class AddPasswordGUI extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(urlTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(categoryLBL, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(categoryLBL, javax.swing.GroupLayout.DEFAULT_SIZE, 24, Short.MAX_VALUE)
+                    .addComponent(notesLBL))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(categoryTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(categoryTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(notesTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(31, 31, 31))
         );
 
@@ -355,6 +368,7 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         String password = new String(passwordTF.getPassword());
         String url = urlTF.getText().trim();
         String category = categoryTF.getText().trim();
+        String notes = notesTF.getText().trim();
         
         // Basic Validation to check for all required inputs
         if (name.isEmpty() || username.isEmpty() || password.isEmpty()) {
@@ -380,6 +394,10 @@ public class AddPasswordGUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Category must be under " + MAX_LEN + " characters.", "Input Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        if (notes.length() > MAX_LEN) {
+            JOptionPane.showMessageDialog(this, "Notes must be under " + MAX_LEN + " characters.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         //Password Strength Policy Enforcement (dictating Minimum score of 50)
         int strengthScore = PasswordStrengthUtil.calculateStrength(password);
@@ -400,8 +418,9 @@ public class AddPasswordGUI extends javax.swing.JFrame {
         }
         
         // 2. Create the PasswordEntry object
-        PasswordEntry newEntry = new PasswordEntry(userEmail, name, username, url, category);
+        PasswordEntry newEntry = new PasswordEntry(userEmail, name, username, url, category, notes);
         newEntry.setEncryptedPassword(encryptedPassword);
+        newEntry.setNotes(notes);
 
         // 3. Save to database
         boolean success = DBhelper.savePassword(newEntry);
@@ -447,6 +466,8 @@ public class AddPasswordGUI extends javax.swing.JFrame {
     private javax.swing.JButton generatePswBTN;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JLabel notesLBL;
+    private javax.swing.JTextField notesTF;
     private javax.swing.JLabel passwordLBL;
     private javax.swing.JPasswordField passwordTF;
     private javax.swing.JLabel pswStrengthLBL;

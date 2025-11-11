@@ -19,6 +19,11 @@ import javax.swing.JOptionPane;
 public class signupGUI extends javax.swing.JFrame {
     private String generateOTP;
     String verifyOTP = null;
+    
+    // @Virginiah: TEMPORARY STORAGE FIELDS
+    private String tempName;
+    private String tempEmail;
+    private char[] tempPassword;
 
     /**
      * Creates new form signupGUI
@@ -540,9 +545,24 @@ public class signupGUI extends javax.swing.JFrame {
             verifyPanel.setVisible(true);
             verifyPanel.revalidate();
             verifyPanel.repaint();
+        }
+        
+        if (!Arrays.equals(password, cPassword)) {  
+        JOptionPane.showMessageDialog(null, "Passwords do not match");
+        } else if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Enter email address");
+        } else {
+            // --- STAGE 1 SUCCESS: Store data and hash password ---
+            tempName = name;
+            tempEmail = email;
+            tempPassword = password; // Temporarily store the password array
 
-   
-    }
+            // Show the verify panel to proceed with OTP verification
+            verifyPanel.setVisible(true);
+            emailJtf1.setText(tempEmail); // Pre-fill the email for verification
+
+            //don't hash/save yet. saving that for the verify button.
+        }
        
     }//GEN-LAST:event_submitJbtnActionPerformed
 
@@ -556,7 +576,7 @@ public class signupGUI extends javax.swing.JFrame {
 
     private void verifyJbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_verifyJbtnActionPerformed
         // TODO add your handling code here:
-        String enteredOTP = otpJtf.getText(); 
+        String enteredOTP = otpJtf.getText().trim(); 
 
         // Input validation
         if (enteredOTP.isEmpty()) {
@@ -566,9 +586,35 @@ public class signupGUI extends javax.swing.JFrame {
         if (enteredOTP.equals(generateOTP)) {
             JOptionPane.showMessageDialog(this, "Verification successful! You can now complete signup.");
             verifyPanel.setVisible(false);
+            // 1. Hash the password (must be done now)
+            String hashedPassword = Hashing.hashPassword(tempPassword); 
+
+            // 2. Clear the plaintext password from memory immediately
+            Arrays.fill(tempPassword, ' ');
+
+            if (hashedPassword != null) {
+                // 3. Save the user data using DBhelper
+                boolean saved = DBhelper.saveUser(tempName, tempEmail, hashedPassword); 
+
+                if (saved) {
+                    JOptionPane.showMessageDialog(this, "Account created successfully! You can now log in.");
+
+                    // 4. Redirect to the login screen
+                    loginGUI myGUI = new loginGUI();
+                    myGUI.setVisible(true);
+                    this.dispose(); 
+                } else {
+                    // This usually happens if the email already exists (UNIQUE constraint error)
+                    JOptionPane.showMessageDialog(this, "Error: Account creation failed. Email may already be in use.", "DB Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Error: Could not hash password. Registration failed.", "Security Error", JOptionPane.ERROR_MESSAGE);
+            }
+            verifyPanel.setVisible(false);
         } else {
             JOptionPane.showMessageDialog(this, "Invalid OTP. Please try again.");
-    }
+        }
+        
     }//GEN-LAST:event_verifyJbtnActionPerformed
 
     private void otpJtfFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_otpJtfFocusGained

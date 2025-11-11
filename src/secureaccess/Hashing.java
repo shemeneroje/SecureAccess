@@ -10,12 +10,16 @@ package secureaccess;
  */
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Random;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 public class Hashing {
     public static String hashPassword(char[] password) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA‑256");
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] bytes = new String(password).getBytes();  //bytes[] converts the string into bytes so the password hashing will work
             byte[] hashed = md.digest(bytes);
 
@@ -38,6 +42,49 @@ public class Hashing {
             otp.append(digits.charAt(random.nextInt(digits.length())));
         }
         return otp.toString();
+    }
+    
+    //Lin's code
+    private Hashing() {
+    }
+
+    public static final int ITERATIONS = 100_000;
+    private static final int SALT_BYTES = 16;   // 16 bytes
+    private static final int KEY_BITS = 256;  // 32 bytes
+
+    public static String generateSaltBase64() {
+        byte[] salt = new byte[SALT_BYTES];
+        new SecureRandom().nextBytes(salt);
+        return Base64.getEncoder().encodeToString(salt);
+    }
+
+    public static String hashPassword(char[] password, String saltBase64) {
+        try {
+            byte[] salt = Base64.getDecoder().decode(saltBase64);
+            PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_BITS);
+            SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] hash = f.generateSecret(spec).getEncoded();
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new IllegalStateException("PBKDF2 failed", e);
+        } finally {
+            java.util.Arrays.fill(password, '\0');
+        }
+    }
+
+
+    public static boolean verify(char[] candidate, String saltBase64, String expectedHashBase64) {
+        String cand = hashPassword(candidate, saltBase64);
+        byte[] a = Base64.getDecoder().decode(cand);
+        byte[] b = Base64.getDecoder().decode(expectedHashBase64);
+        if (a.length != b.length) {
+            return false;
+        }
+        int r = 0;
+        for (int i = 0; i < a.length; i++) {
+            r |= a[i] ^ b[i];
+        }
+        return r == 0;
     }
 }
 

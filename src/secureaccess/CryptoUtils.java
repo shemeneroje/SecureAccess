@@ -58,7 +58,7 @@ public class CryptoUtils {
     /**
      * Generates a cryptographically strong, random password.
      * @param length The desired length of the password.
-     * @return A strong, random password string.
+     * returns A strong, random password string.
      */
     public static String generateStrongPassword(int length) {
         final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";

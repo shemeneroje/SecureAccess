@@ -43,13 +43,13 @@ public class PasswordEntry {
 //    }
     
     // Constructor for a new entry (without ID or encrypted password yet) fo a addPasswordGUI
-    public PasswordEntry(String userEmail, String name, String username, String url, String category) {
-        this(0, userEmail, name, username, null, url, category, null);
+    public PasswordEntry(String userEmail, String name, String username, String url, String category, String notes) {
+        this(0, userEmail, name, username, null, url, category, notes);
     }
     
     // Minimal constructor for initial creation in GUI
     public PasswordEntry(String userEmail) {
-        this(0, userEmail, "", "", null, "", "", null);
+        this(0, userEmail, "", "", null, "", "", "");
     }
 
     //setters and getters
@@ -110,7 +110,7 @@ public class PasswordEntry {
     }
 
     public String getNotes() {
-        return notes;
+        return notes != null ? notes : "";
     }
 
     public void setNotes(String notes) {

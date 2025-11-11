@@ -20,6 +20,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
     private final DashboardGUI parentDashboard;
     private PasswordEntry currentEntry;
     private boolean isEditing = false; //to track edit mode
+    private PasswordEntry originalEntry;
     
     //Creates new form PasswordCardGUI
     public ViewPasswordGUI() {
@@ -34,7 +35,9 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         this.sessionManager = sm;
         this.userEmail = userEmail;
         this.currentEntry = entry;
+        this.originalEntry = entry;
         this.parentDashboard = parent;
+        
         initComponents();
         this.setLocationRelativeTo(null); // Center the window
         // Set initial state for password field
@@ -52,7 +55,11 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         usernameTF.setText(currentEntry.getUsername());
         urlTF.setText(currentEntry.getUrl());
         categoryTF.setText(currentEntry.getCategory());
+        //notesTF.setText(currentEntry.getNotes());
         
+        if (notesTF != null) {
+            notesTF.setText(currentEntry.getNotes());
+        }
         // Decrypt and display password strength
         String decryptedPsw = EncryptionUtil.decrypt(currentEntry.getEncryptedPassword());
         passwordTF.setText(decryptedPsw);
@@ -72,11 +79,16 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         passwordTF.setEditable(editMode);
         urlTF.setEditable(editMode);
         categoryTF.setEditable(editMode);
+        //notesTF.setEditable(editMode);
+        
+        if (notesTF != null) { 
+            notesTF.setEditable(editMode);
+        }
         
         // Button visibility/text
         saveBTN.setVisible(editMode);
         editBTN.setText(editMode ? "CANCEL" : "EDIT");
-        jButton1.setVisible(!editMode); // DELETE button visible only when NOT editing
+        deleteBTN.setVisible(!editMode); // DELETE button visible only when NOT editing
     }
     
     //Password strength checker
@@ -143,7 +155,9 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         categoryLBL = new javax.swing.JLabel();
         categoryTF = new javax.swing.JTextField();
         editBTN = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        deleteBTN = new javax.swing.JButton();
+        notesLBL = new javax.swing.JLabel();
+        notesTF = new javax.swing.JTextField();
         jSeparator1 = new javax.swing.JSeparator();
         titleLBL = new javax.swing.JLabel();
         backBTN = new javax.swing.JButton();
@@ -163,8 +177,6 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
 
         passwordLBL.setForeground(new java.awt.Color(255, 255, 255));
         passwordLBL.setText("Password");
-
-        passwordTF.setText("jPasswordField1");
 
         viewPswBTN.setForeground(new java.awt.Color(255, 255, 255));
         viewPswBTN.setText("view");
@@ -198,14 +210,17 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setBackground(new java.awt.Color(153, 0, 0));
-        jButton1.setForeground(new java.awt.Color(255, 153, 153));
-        jButton1.setText("DELETE");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        deleteBTN.setBackground(new java.awt.Color(153, 0, 0));
+        deleteBTN.setForeground(new java.awt.Color(255, 153, 153));
+        deleteBTN.setText("DELETE");
+        deleteBTN.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                deleteBTNActionPerformed(evt);
             }
         });
+
+        notesLBL.setForeground(new java.awt.Color(255, 255, 255));
+        notesLBL.setText("Notes");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -213,69 +228,77 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGap(25, 25, 25)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(categoryTF, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
-                            .addComponent(urlTF, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(usernameTF, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(passwordTF, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(notesLBL)
+                            .addComponent(urlTF, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
+                                .addComponent(passwordTF, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(30, 30, 30)
                                 .addComponent(viewPswBTN)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(passwordStrengthLBL)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(pswdProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 100, Short.MAX_VALUE)
-                                .addComponent(editBTN)
-                                .addGap(36, 36, 36)
-                                .addComponent(jButton1)
-                                .addGap(18, 18, 18))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(usernameTF, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 14, Short.MAX_VALUE))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(notesTF, javax.swing.GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
                             .addComponent(siteLBL, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(categoryLBL, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(urlLBL, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(passwordLBL, javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(usernameLBL, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(siteTF, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap())))
+                            .addComponent(siteTF)
+                            .addComponent(categoryTF))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(editBTN)
+                        .addGap(36, 36, 36)
+                        .addComponent(deleteBTN)
+                        .addGap(18, 18, 18))))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap(32, Short.MAX_VALUE)
+                .addGap(26, 26, 26)
                 .addComponent(siteLBL)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(siteTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(11, 11, 11)
+                .addGap(18, 18, 18)
                 .addComponent(usernameLBL)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(usernameTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(31, 31, 31)
                 .addComponent(passwordLBL)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(passwordTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(viewPswBTN)
-                        .addComponent(passwordStrengthLBL))
-                    .addComponent(pswdProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(32, 32, 32)
-                .addComponent(urlLBL)
-                .addGap(18, 18, 18)
-                .addComponent(urlTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(categoryLBL)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(categoryTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(editBTN))
-                .addGap(18, 18, 18))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(passwordTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pswdProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(31, 31, 31)
+                        .addComponent(urlLBL)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(urlTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(26, 26, 26)
+                        .addComponent(categoryLBL)
+                        .addGap(18, 18, 18)
+                        .addComponent(categoryTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(notesLBL)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(deleteBTN)
+                            .addComponent(editBTN)
+                            .addComponent(notesTF, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(viewPswBTN)
+                            .addComponent(passwordStrengthLBL))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
 
         titleLBL.setFont(new java.awt.Font("HP Simplified Hans", 1, 24)); // NOI18N
@@ -314,15 +337,15 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(backgroundLayout.createSequentialGroup()
-                .addGap(24, 24, 24)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(24, Short.MAX_VALUE))
-            .addGroup(backgroundLayout.createSequentialGroup()
                 .addGap(70, 70, 70)
                 .addComponent(titleLBL)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 250, Short.MAX_VALUE)
                 .addComponent(saveBTN)
                 .addGap(31, 31, 31))
+            .addGroup(backgroundLayout.createSequentialGroup()
+                .addGap(24, 24, 24)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         backgroundLayout.setVerticalGroup(
             backgroundLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -334,11 +357,11 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
                     .addGroup(backgroundLayout.createSequentialGroup()
                         .addComponent(titleLBL)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(saveBTN))
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(38, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -397,6 +420,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         String password = new String(passwordTF.getPassword());
         String url = urlTF.getText().trim();
         String category = categoryTF.getText().trim();
+        String notes = (notesTF != null) ? notesTF.getText().trim() : "";
         
         // Basic Validation
         if (name.isEmpty() || username.isEmpty() || password.isEmpty()) {
@@ -416,6 +440,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         currentEntry.setUsername(username);
         currentEntry.setUrl(url);
         currentEntry.setCategory(category);
+        currentEntry.setNotes(notes);
         currentEntry.setEncryptedPassword(encryptedPassword); // Save the new encrypted blob
 
         // 3. Update database
@@ -423,6 +448,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         
         if (success) {
             JOptionPane.showMessageDialog(this, "Password updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            this.originalEntry = currentEntry;
             setEditMode(false); // Exit edit mode
             // Manually update the strength display since  the password changed
             checkPasswordStrength(password); 
@@ -439,6 +465,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         
         if (isEditing) {
             // CANCEL action: Revert changes and exit edit mode
+            this.currentEntry = originalEntry;
             loadEntryData(); // Reload original data
             setEditMode(false);
             // Hide password on exit from edit mode for security
@@ -453,7 +480,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_editBTNActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void deleteBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteBTNActionPerformed
         // TODO add your handling code here:
         if (sessionManager != null) sessionManager.touch();
         
@@ -471,7 +498,7 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Failed to delete password entry.", "DB Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_deleteBTNActionPerformed
 
     /**
      * @param args the command line arguments
@@ -503,10 +530,12 @@ public class ViewPasswordGUI extends javax.swing.JFrame {
     private javax.swing.JPanel background;
     private javax.swing.JLabel categoryLBL;
     private javax.swing.JTextField categoryTF;
+    private javax.swing.JButton deleteBTN;
     private javax.swing.JButton editBTN;
-    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JLabel notesLBL;
+    private javax.swing.JTextField notesTF;
     private javax.swing.JLabel passwordLBL;
     private javax.swing.JLabel passwordStrengthLBL;
     private javax.swing.JPasswordField passwordTF;

@@ -13,7 +13,7 @@ import java.util.List;
 import java.sql.ResultSet;
 /**
  *
- * @author shaun
+ * @author vvtat
  */
 
 public class DBhelper {
@@ -167,7 +167,7 @@ public class DBhelper {
 
     //Saves a new password entry for a specific user.
     public static boolean savePassword(PasswordEntry entry) {
-        String sql = "INSERT INTO passwords(user_email, service_name, username, encrypted_password) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO passwords(user_id, name, username, password, url, category, notes) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DatabaseConnection.connect(); 
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -191,7 +191,7 @@ public class DBhelper {
     // Retrieves all password entries for a given user ID.
     public static List<PasswordEntry> getAllPasswords(String userEmail) {
         List<PasswordEntry> entries = new ArrayList<>();
-        String sql = "SELECT id, service_name, username, encrypted_password FROM passwords WHERE user_email = ?";
+        String sql = "SELECT id, name, username, password, url, category, notes FROM passwords WHERE user_id = ?";
         
         try (Connection conn = DatabaseConnection.connect(); 
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -204,9 +204,9 @@ public class DBhelper {
                 PasswordEntry entry = new PasswordEntry(
                     rs.getInt("id"),
                     userEmail, // We know the email, it's the one we queried
-                    rs.getString("service_name"),
-                    rs.getString("service_username"),
-                    rs.getString("encrypted_password"),
+                    rs.getString("name"),
+                    rs.getString("username"),
+                    rs.getString("password"), // The encrypted password
                     rs.getString("url"),
                     rs.getString("category"),
                     rs.getString("notes")
@@ -221,7 +221,7 @@ public class DBhelper {
 
     //Updates an existing password entry.
     public static boolean updatePassword(PasswordEntry entry) {
-        String sql = "UPDATE passwords SET service_name = ?, username = ?, encrypted_password = ? WHERE id = ? AND user_email = ?";
+        String sql = "UPDATE passwords SET name = ?, username = ?, password = ?, url = ?, category = ?, notes = ? WHERE user_id = ?";
         
         try (Connection conn = DatabaseConnection.connect(); 
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -233,7 +233,7 @@ public class DBhelper {
             pstmt.setString(5, entry.getCategory());
             pstmt.setString(6, entry.getNotes());
             pstmt.setInt(7, entry.getId());
-            pstmt.setString(8, entry.getUserEmail()); // Important for security/ownership check
+            //pstmt.setString(8, entry.getUserEmail()); // Important for security/ownership check
             
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
@@ -245,7 +245,8 @@ public class DBhelper {
 
     //Deletes a password entry by its ID.
     public static boolean deletePassword(int id, String userEmail) {
-        String sql = "DELETE FROM passwords WHERE id = ? AND user_email = ?";
+        //Check against 'user_id'
+        String sql = "DELETE FROM passwords WHERE id = ? AND user_id = ?";
 
         try (Connection conn = DatabaseConnection.connect(); 
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
