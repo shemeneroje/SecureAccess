@@ -83,9 +83,9 @@ public class EncryptionUtil {
     
     // Method to securely hash the master passwords for user login authentication
     // relies on the  Hashing.java for authentication
-    public static String hashMasterPassword(char[] password) {
-        return Hashing.hashPassword(password);
-    }
+//    public static String hashMasterPassword(char[] password) {
+//        return Hashing.hashPassword(password);
+//    }
     
     //Public static getter method to safely retrieve the key
     /**

@@ -297,40 +297,67 @@ public class loginGUI extends javax.swing.JFrame {
         }
 
         // 2. Retrieve the stored hashed password from the database
-        String storedHashedPassword = DBhelper.getHashedPasswordByEmail(userEmail);
+        //String storedHashedPassword = DBhelper.getHashedPasswordByEmail(userEmail);
+        String[] credentials = DBhelper.getHashedPasswordAndSaltByEmail(userEmail);
+        
         
         // 3. Check for Null/Non-existent User
-        if (storedHashedPassword == null) {
+//        if (storedHashedPassword == null) {
+//            JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+//            return;
+//        }
+        if (credentials == null) {
             JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            // Clear password array immediately for security, even on failure
+            java.util.Arrays.fill(inputPassword, ' '); 
             return;
         }
 
-        // 4. Hash the user's input password
-        String inputHashedPassword = Hashing.hashPassword(inputPassword);
+        String storedHashedPassword = credentials[0];
+        String storedSalt = credentials[1];
         
-        // Clear the password array immediately after hashing for security
-        java.util.Arrays.fill(inputPassword, ' '); 
-
-        // 5. Compare the hashes for authentication
-        if (storedHashedPassword.equals(inputHashedPassword)) {
-            
-            // Authentication SUCCESSFUL! -> REDIRECTION CODE HERE
-
-            // 6. Start the session
-            // The session token is returned but not strictly needed for UI navigation
+        // 4. Hash the user's input password
+        //String inputHashedPassword = Hashing.hashPassword(inputPassword);
+        
+        // 4. Verify the input password using the stored hash and salt (New method)
+        boolean verified = Hashing.verify(inputPassword, storedSalt, storedHashedPassword); //Hashing.verify() handles clearing the inputPassword array for security.
+        
+        if (verified) {
+            // Authentication SUCCESSFUL!
+            // 5. Start the session and redirect to Dashboard
             sessionManager.startSession(userEmail, SESSION_TIMEOUT_MS, WARNING_TIME_MS);
-            
-            // 7. Hide the current login window
             this.dispose();
-            
-            // 8. Open the Dashboard
-            // Pass the active SessionManager and the user's email to the Dashboard
             new DashboardGUI(sessionManager, userEmail).setVisible(true);
-            
+
         } else {
             // Authentication FAILED
             JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            // Password array is already cleared by Hashing.verify()
         }
+        
+//        // Clear the password array immediately after hashing for security
+//        java.util.Arrays.fill(inputPassword, ' '); 
+//
+//        // 5. Compare the hashes for authentication
+//        if (storedHashedPassword.equals(inputHashedPassword)) {
+//            
+//            // Authentication SUCCESSFUL! -> REDIRECTION CODE HERE
+//
+//            // 6. Start the session
+//            // The session token is returned but not strictly needed for UI navigation
+//            sessionManager.startSession(userEmail, SESSION_TIMEOUT_MS, WARNING_TIME_MS);
+//            
+//            // 7. Hide the current login window
+//            this.dispose();
+//            
+//            // 8. Open the Dashboard
+//            // Pass the active SessionManager and the user's email to the Dashboard
+//            new DashboardGUI(sessionManager, userEmail).setVisible(true);
+//            
+//        } else {
+//            // Authentication FAILED
+//            JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+//        }
        
     }//GEN-LAST:event_submitJbtnActionPerformed
 

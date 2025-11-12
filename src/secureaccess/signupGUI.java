@@ -583,36 +583,71 @@ public class signupGUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Please enter the OTP.");
         }
 
-        if (enteredOTP.equals(generateOTP)) {
-            JOptionPane.showMessageDialog(this, "Verification successful! You can now complete signup.");
-            verifyPanel.setVisible(false);
-            // 1. Hash the password (must be done now)
-            String hashedPassword = Hashing.hashPassword(tempPassword); 
+//        if (enteredOTP.equals(generateOTP)) {
+//            JOptionPane.showMessageDialog(this, "Verification successful! You can now complete signup.");
+//            verifyPanel.setVisible(false);
+//            // 1. Hash the password (must be done now)
+//            String hashedPassword = Hashing.hashPassword(tempPassword); 
+//
+//            // 2. Clear the plaintext password from memory immediately
+//            Arrays.fill(tempPassword, ' ');
+//
+//            if (hashedPassword != null) {
+//                // 3. Save the user data using DBhelper
+//                boolean saved = DBhelper.saveUser(tempName, tempEmail, hashedPassword); 
+//
+//                if (saved) {
+//                    JOptionPane.showMessageDialog(this, "Account created successfully! You can now log in.");
+//
+//                    // 4. Redirect to the login screen
+//                    loginGUI myGUI = new loginGUI();
+//                    myGUI.setVisible(true);
+//                    this.dispose(); 
+//                } else {
+//                    // This usually happens if the email already exists (UNIQUE constraint error)
+//                    JOptionPane.showMessageDialog(this, "Error: Account creation failed. Email may already be in use.", "DB Error", JOptionPane.ERROR_MESSAGE);
+//                }
+//            } else {
+//                JOptionPane.showMessageDialog(this, "Error: Could not hash password. Registration failed.", "Security Error", JOptionPane.ERROR_MESSAGE);
+//            }
+//            verifyPanel.setVisible(false);
+//        } else {
+//            JOptionPane.showMessageDialog(this, "Invalid OTP. Please try again.");
+//        }
 
-            // 2. Clear the plaintext password from memory immediately
-            Arrays.fill(tempPassword, ' ');
+        if (enteredOTP.equals(generateOTP)) {
+        
+            // --- SUCCESSFUL VERIFICATION - PERFORM FINAL DB SAVE ---
+
+            // 1. Generate the salt
+            String salt = Hashing.generateSaltBase64(); 
+
+            // 2. Hash the password WITH the salt (Hashing method clears tempPassword array)
+            String hashedPassword = null;
+            try {
+                hashedPassword = Hashing.hashPassword(tempPassword, salt); 
+            } catch (IllegalStateException e) {
+                JOptionPane.showMessageDialog(this, "Security Error: Failed to hash password.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // tempPassword array is now cleared by Hashing.hashPassword()
 
             if (hashedPassword != null) {
-                // 3. Save the user data using DBhelper
-                boolean saved = DBhelper.saveUser(tempName, tempEmail, hashedPassword); 
+                // 3. Save the user data using the new saveUser signature
+                boolean saved = DBhelper.saveUser(tempName, tempEmail, hashedPassword, salt); // ADD SALT
 
                 if (saved) {
                     JOptionPane.showMessageDialog(this, "Account created successfully! You can now log in.");
-
-                    // 4. Redirect to the login screen
                     loginGUI myGUI = new loginGUI();
                     myGUI.setVisible(true);
                     this.dispose(); 
                 } else {
-                    // This usually happens if the email already exists (UNIQUE constraint error)
                     JOptionPane.showMessageDialog(this, "Error: Account creation failed. Email may already be in use.", "DB Error", JOptionPane.ERROR_MESSAGE);
                 }
-            } else {
-                JOptionPane.showMessageDialog(this, "Error: Could not hash password. Registration failed.", "Security Error", JOptionPane.ERROR_MESSAGE);
             }
-            verifyPanel.setVisible(false);
         } else {
-            JOptionPane.showMessageDialog(this, "Invalid OTP. Please try again.");
+            JOptionPane.showMessageDialog(this, "Invalid OTP. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
         }
         
     }//GEN-LAST:event_verifyJbtnActionPerformed
