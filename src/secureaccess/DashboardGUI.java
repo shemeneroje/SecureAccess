@@ -129,7 +129,6 @@ public class DashboardGUI extends javax.swing.JFrame {
         viewPasswordsBtn = new javax.swing.JButton();
         addPasswordBtn = new javax.swing.JButton();
         logoLBL = new javax.swing.JLabel();
-        twoFASetupBTN = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JSeparator();
         titleLBL = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
@@ -174,14 +173,6 @@ public class DashboardGUI extends javax.swing.JFrame {
         logoLBL.setForeground(new java.awt.Color(255, 255, 255));
         logoLBL.setText("SECURE ACCESS");
 
-        twoFASetupBTN.setBackground(new java.awt.Color(0, 183, 183));
-        twoFASetupBTN.setText("2FA Activation");
-        twoFASetupBTN.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                twoFASetupBTNActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout sidebarPanelLayout = new javax.swing.GroupLayout(sidebarPanel);
         sidebarPanel.setLayout(sidebarPanelLayout);
         sidebarPanelLayout.setHorizontalGroup(
@@ -193,9 +184,7 @@ public class DashboardGUI extends javax.swing.JFrame {
                         .addGroup(sidebarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(viewPasswordsBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(sidebarPanelLayout.createSequentialGroup()
-                                .addGroup(sidebarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(twoFASetupBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(addPasswordBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(addPasswordBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE))))
                     .addGroup(sidebarPanelLayout.createSequentialGroup()
                         .addGroup(sidebarPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -217,8 +206,6 @@ public class DashboardGUI extends javax.swing.JFrame {
                 .addComponent(viewPasswordsBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(addPasswordBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(twoFASetupBTN, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(logoutBtn)
                 .addGap(26, 26, 26))
@@ -339,10 +326,6 @@ public class DashboardGUI extends javax.swing.JFrame {
         new AddPasswordGUI(sessionManager, userEmail, this).setVisible(true);
     }//GEN-LAST:event_addPasswordBtnActionPerformed
 
-    private void twoFASetupBTNActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_twoFASetupBTNActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_twoFASetupBTNActionPerformed
-
     private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
         // TODO add your handling code here:
         // 1. Stop the session (logs out the user and clears the token/idle monitor)
@@ -397,7 +380,6 @@ public class DashboardGUI extends javax.swing.JFrame {
     private javax.swing.JPanel sidebarPanel;
     private javax.swing.JSeparator sidebarSeparator;
     private javax.swing.JLabel titleLBL;
-    private javax.swing.JButton twoFASetupBTN;
     private javax.swing.JButton viewPasswordsBtn;
     // End of variables declaration//GEN-END:variables
 }

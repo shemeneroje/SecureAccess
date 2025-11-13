@@ -29,6 +29,9 @@ public class signupGUI extends javax.swing.JFrame {
      * Creates new form signupGUI
      */
     public signupGUI() {
+        DBhelper.initializeUsersTable();
+        DBhelper.initializePasswordsTable();
+        
         initComponents();
         verifyPanel.setVisible(false);
     }

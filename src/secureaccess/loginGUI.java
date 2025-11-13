@@ -15,8 +15,8 @@ public class loginGUI extends javax.swing.JFrame {
 
     //@author Virginiah
     // Added new Fields: Needed to handle session management and encryption keys
-    private final SessionManager sessionManager;
-    private final byte[] aesKey;
+    private SessionManager sessionManager;
+    private byte[] aesKey;
     private static final long SESSION_TIMEOUT_MS = 1800000; // 30 minutes (Shauna to change according to the timeout)
     private static final long WARNING_TIME_MS = 60000;    // 1 minute warning
     /**
@@ -25,17 +25,18 @@ public class loginGUI extends javax.swing.JFrame {
     public loginGUI() {
         DBhelper.initializeUsersTable();
         DBhelper.initializePasswordsTable();
-        
+//        this.sessionManager = null;
+//        this.aesKey = null;
         // access the AES KEY
-        this.aesKey = EncryptionUtil.getAESKey(); // Accessing the statically loaded key from the EncryptionUtil class
-        if (this.aesKey == null) {
-            // FATAL: The application cannot proceed without the master key
-            JOptionPane.showMessageDialog(null, "FATAL: Encryption key is missing. Application cannot start.", "Error", JOptionPane.ERROR_MESSAGE);
-            // Optionally: System.exit(1); 
-        }
+//        this.aesKey = EncryptionUtil.getAESKey(); // Accessing the statically loaded key from the EncryptionUtil class
+//        if (this.aesKey == null) {
+//            // FATAL: The application cannot proceed without the master key
+//            JOptionPane.showMessageDialog(null, "FATAL: Encryption key is missing. Application cannot start.", "Error", JOptionPane.ERROR_MESSAGE);
+//            // Optionally: System.exit(1); 
+//        }
         
         // Initialize the SessionManager with the key
-        this.sessionManager = new SessionManager(this.aesKey);
+        //this.sessionManager = new SessionManager(this.aesKey);
         
         initComponents();
         this.setLocationRelativeTo(null); // Center the window
@@ -325,6 +326,10 @@ public class loginGUI extends javax.swing.JFrame {
         if (verified) {
             // Authentication SUCCESSFUL!
             // 5. Start the session and redirect to Dashboard
+            // This forces the static block to run/re-run KeyManager.loadOrCreateKey()
+            this.aesKey = EncryptionUtil.getAESKey(); 
+            this.sessionManager = new SessionManager(this.aesKey);
+            
             sessionManager.startSession(userEmail, SESSION_TIMEOUT_MS, WARNING_TIME_MS);
             this.dispose();
             new DashboardGUI(sessionManager, userEmail).setVisible(true);
