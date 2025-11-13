@@ -12,15 +12,39 @@ import java.util.List;
  *
  * @author linru
  */
-
 public class PasswordsDao {
+
     private final Connection conn;
 
-    public PasswordsDao(Connection conn) { this.conn = conn; }
+    public PasswordsDao(Connection conn) {
+        this.conn = conn;
+    }
 
     // Save a new site password (AES-GCM encrypt using the master password the user just logged in with)
     public void addPassword(int userId, char[] masterPassword, String serviceName, String serviceUsername, String url, String plainPassword, String notes) throws SQLException {
+        System.out.println("[PasswordsDao] addPassword called");
+        System.out.println("[ADD] salt.len=... iv.len=... ct.len=...");
+        System.out.println("[DB] JDBC URL = ...");
         CryptoUtil.EncryptionResult er = CryptoUtil.encryptPassword(masterPassword, plainPassword);
+
+        // ---- Debug + safety for fix Error saving password: [SQLITE_CONSTRAINT_NOTNULL] A NOT NULL constraint failed (NOT NULL constraint failed: passwords.enc_salt)----
+        if (er == null || er.ciphertextBase64 == null || er.saltBase64 == null || er.ivBase64 == null) {
+            throw new SQLException("Encryption failed: missing ciphertext/salt/iv");
+        }
+        System.out.println("[ADD] salt.len=" + er.saltBase64.length()
+                + " iv.len=" + er.ivBase64.length()
+                + " ct.len=" + er.ciphertextBase64.length());
+        if (url == null) {
+            url = "";
+        }
+        if (serviceName == null) {
+            serviceName = "";
+        }
+        if (notes == null) {
+            notes = "";
+        }
+        System.out.println("[DB] JDBC URL = " + conn.getMetaData().getURL());
+        // ------------------------
 
         String sql = """
             INSERT INTO passwords (user_id, service_name, service_username, url, notes,
@@ -33,18 +57,17 @@ public class PasswordsDao {
             ps.setString(3, serviceUsername);
             ps.setString(4, url);
             ps.setString(5, notes);
-            ps.setString(6, er.ciphertextBase64);
-            ps.setString(7, er.saltBase64);
-            ps.setString(8, er.ivBase64);
+            ps.setString(6, er.ciphertextBase64);        //not NULL
+            ps.setString(7, er.saltBase64);              //not NULL
+            ps.setString(8, er.ivBase64);                //not NULL
             ps.executeUpdate();
         }
 
     }
+
     public void savePassword(int userId, char[] masterPassword, String service, String url, String plainPassword) throws SQLException {
-    addPassword(userId, masterPassword, service, "", url, plainPassword, "");
-}
-
-
+        addPassword(userId, masterPassword, service, "", url, plainPassword, "");
+    }
 
     // List entries (without decrypting)
     public List<PasswordRow> listPasswords(int userId) throws SQLException {
@@ -55,11 +78,11 @@ public class PasswordsDao {
                 List<PasswordRow> out = new ArrayList<>();
                 while (rs.next()) {
                     out.add(new PasswordRow(
-                        rs.getInt("id"),
-                        rs.getString("service_name"),
-                        rs.getString("service_username"),
-                        rs.getString("url"),
-                        rs.getString("created_at")
+                            rs.getInt("id"),
+                            rs.getString("service_name"),
+                            rs.getString("service_username"),
+                            rs.getString("url"),
+                            rs.getString("created_at")
                     ));
                 }
                 return out;
@@ -73,12 +96,14 @@ public class PasswordsDao {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, entryId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return null;
+                if (!rs.next()) {
+                    return null;
+                }
                 return CryptoUtil.decryptPassword(
-                    masterPassword,
-                    rs.getString("enc_salt"),
-                    rs.getString("enc_iv"),
-                    rs.getString("enc_password")
+                        masterPassword,
+                        rs.getString("enc_salt"),
+                        rs.getString("enc_iv"),
+                        rs.getString("enc_password")
                 );
             }
         }
@@ -86,9 +111,16 @@ public class PasswordsDao {
 
     // Simple DTO
     public static class PasswordRow {
-        public final int id; public final String serviceName, serviceUsername, url, createdAt;
+
+        public final int id;
+        public final String serviceName, serviceUsername, url, createdAt;
+
         public PasswordRow(int id, String s, String u, String url, String c) {
-            this.id = id; this.serviceName = s; this.serviceUsername = u; this.url = url; this.createdAt = c;
+            this.id = id;
+            this.serviceName = s;
+            this.serviceUsername = u;
+            this.url = url;
+            this.createdAt = c;
         }
     }
 }

@@ -5,6 +5,8 @@
 package secureaccess;
 
 import java.awt.Color;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 import javax.swing.JOptionPane;
@@ -15,7 +17,13 @@ import javax.swing.JOptionPane;
  * @author shaun
  */
 public class signupGUI extends javax.swing.JFrame {
+    private String generateOTP;
     String verifyOTP = null;
+    
+    // @Virginiah: TEMPORARY STORAGE FIELDS
+    private String tempName;
+    private String tempEmail;
+    private char[] tempPassword;
 
     /**
      * Creates new form signupGUI
@@ -518,9 +526,10 @@ public class signupGUI extends javax.swing.JFrame {
         char[] password = passwordJpf.getPassword();
         char[] cPassword = cpasswordJpf.getPassword();
         String email = emailJtf.getText().toLowerCase();
-        String OTP = otpJtf.getText();
+       
 
-        // Input validation
+        
+         //Input validation
         if (name.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Enter your name");
         } else if (password.length == 0) {
@@ -528,12 +537,32 @@ public class signupGUI extends javax.swing.JFrame {
         } else if (cPassword.length == 0) {
             JOptionPane.showMessageDialog(null, "Confirm password");
         } else if (!Arrays.equals(password, cPassword)) {  //check if the passwords are equal
-            JOptionPane.showMessageDialog(null, "Passwords do not match"); 
-        }else if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Passwords do not match");
+        } else if (email.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Enter email address");
-        }else if (OTP.isEmpty()) {
-            verifyPanel.setVisible(true);  //making the panel to enter the verification visible
-        } 
+        } else {
+            // All inputs are valid → just show the verify panel
+            verifyPanel.setVisible(true);
+            verifyPanel.revalidate();
+            verifyPanel.repaint();
+        }
+        
+        if (!Arrays.equals(password, cPassword)) {  
+        JOptionPane.showMessageDialog(null, "Passwords do not match");
+        } else if (email.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Enter email address");
+        } else {
+            // --- STAGE 1 SUCCESS: Store data and hash password ---
+            tempName = name;
+            tempEmail = email;
+            tempPassword = password; // Temporarily store the password array
+
+            // Show the verify panel to proceed with OTP verification
+            verifyPanel.setVisible(true);
+            emailJtf1.setText(tempEmail); // Pre-fill the email for verification
+
+            //don't hash/save yet. saving that for the verify button.
+        }
        
     }//GEN-LAST:event_submitJbtnActionPerformed
 
@@ -547,18 +576,43 @@ public class signupGUI extends javax.swing.JFrame {
 
     private void verifyJbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_verifyJbtnActionPerformed
         // TODO add your handling code here:
-        String enteredOTP = otpJtf.getText(); // Assuming otpField is the text field where the user enters the OTP
+        String enteredOTP = otpJtf.getText().trim(); 
 
         // Input validation
         if (enteredOTP.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Please enter the OTP.");
-        } else {
-            // Verify the OTP
-            if (enteredOTP.equals(verifyOTP)) {
-                verifyPanel.setVisible(false);
+        }
+
+        if (enteredOTP.equals(generateOTP)) {
+            // 1) Generate salt + hash with PBKDF2
+            String saltBase64 = Hashing.generateSaltBase64();
+            String hashedPassword = Hashing.hashPassword(tempPassword, saltBase64);
+
+            // 2) Clear plaintext password ASAP
+            java.util.Arrays.fill(tempPassword, ' ');
+
+            if (hashedPassword != null) {
+                // 3) Save user (username = tempName, email = tempEmail)
+                boolean saved = DBhelper.saveUser(tempName, tempEmail, hashedPassword, saltBase64);
+
+                if (saved) {
+                    JOptionPane.showMessageDialog(this, "Account created successfully! You can now log in.");
+                    loginGUI myGUI = new loginGUI();
+                    myGUI.setVisible(true);
+                    this.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "Error: Account creation failed. Email may already be in use.",
+                        "DB Error", JOptionPane.ERROR_MESSAGE);
+                }
             } else {
-                JOptionPane.showMessageDialog(null, "Invalid OTP. Please try again.");
+                JOptionPane.showMessageDialog(this,
+                    "Error: Could not hash password. Registration failed.",
+                    "Security Error", JOptionPane.ERROR_MESSAGE);
             }
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Invalid OTP. Please try again.");
         }
     }//GEN-LAST:event_verifyJbtnActionPerformed
 
@@ -572,35 +626,27 @@ public class signupGUI extends javax.swing.JFrame {
 
     private void sendOTPjbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendOTPjbtnActionPerformed
         // TODO add your handling code here:
-        //need to connect to database so i can send email
-        /*
-         String email = emailJtf.getText();
+        // TODO add your handling code here:
+        String userEmail = emailJtf1.getText().trim();
 
-        // Input validation
-        if (email.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Please enter your email address.");
-        } else {
-            // Generate OTP
-            String otp = generateOTP(6); // Generate a 6-digit OTP
-
-            // Send OTP to user's email address
-            String subject = "PharmaBright Pharmacy App Registration - OTP Verification";
-            String messageContent = "Dear User,\n\n" +
-                                    "Thank you for registering with Secure Access. " +
-                                    "To complete your registration, please use the following One-Time Password (OTP):\n\n" +
-                                    "Your OTP Code: " + otp + "\n\n" +
-                                    "This OTP is valid for 10 minutes. Please do not share this code with anyone.\n\n" +
-                                    "If you did not initiate this registration, please contact our support team immediately.\n\n" +
-                                    "Best regards,\n" +
-                                    "Secure Access Team";
-
-            verifyOTP = otp;
-
-            sendEmail(email, subject, messageContent);
-
-            JOptionPane.showMessageDialog(null, "OTP has been sent to your email address.");
+        if (userEmail.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter your email");
+            return;
         }
-        */
+        // Generate a 6-digit OTP
+        generateOTP = generateOTP(6);
+
+        // Saving the OTP to a text file
+        try (FileWriter writer = new FileWriter("otpcode.txt")) {
+            writer.write("Your verification code is: " + generateOTP);
+            writer.flush();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Error writing OTP file: " + e.getMessage());
+            return;
+        }
+
+        JOptionPane.showMessageDialog(null, "A verification code has been saved to 'otpcode.txt'.\n"
+                + "Please open the file and enter the code below to verify your account.");
         
     }//GEN-LAST:event_sendOTPjbtnActionPerformed
 

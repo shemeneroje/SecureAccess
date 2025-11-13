@@ -5,6 +5,7 @@
 package secureaccess;
 
 import java.awt.Color;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -12,11 +13,32 @@ import java.awt.Color;
  */
 public class loginGUI extends javax.swing.JFrame {
 
+    //@author Virginiah
+    // Added new Fields: Needed to handle session management and encryption keys
+    private final SessionManager sessionManager;
+    private final byte[] aesKey;
+    private static final long SESSION_TIMEOUT_MS = 1800000; // 30 minutes (Shauna to change according to the timeout)
+    private static final long WARNING_TIME_MS = 60000;    // 1 minute warning
     /**
      * Creates new form loginGUI
      */
     public loginGUI() {
+        DBhelper.initializeUsersTable();
+        DBhelper.initializePasswordsTable();
+        
+        // access the AES KEY
+        this.aesKey = EncryptionUtil.getAESKey(); // Accessing the statically loaded key from the EncryptionUtil class
+        if (this.aesKey == null) {
+            // FATAL: The application cannot proceed without the master key
+            JOptionPane.showMessageDialog(null, "FATAL: Encryption key is missing. Application cannot start.", "Error", JOptionPane.ERROR_MESSAGE);
+            // Optionally: System.exit(1); 
+        }
+        
+        // Initialize the SessionManager with the key
+        this.sessionManager = new SessionManager(this.aesKey);
+        
         initComponents();
+        this.setLocationRelativeTo(null); // Center the window
     }
 
     /**
@@ -53,6 +75,11 @@ public class loginGUI extends javax.swing.JFrame {
         submitJbtn.setFont(new java.awt.Font("Corbel", 0, 14)); // NOI18N
         submitJbtn.setForeground(new java.awt.Color(255, 255, 255));
         submitJbtn.setText("SUBMIT");
+        submitJbtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                submitJbtnActionPerformed(evt);
+            }
+        });
 
         jSeparator6.setBackground(new java.awt.Color(102, 66, 41));
         jSeparator6.setForeground(new java.awt.Color(102, 66, 41));
@@ -251,6 +278,45 @@ public class loginGUI extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_accountJbtnActionPerformed
 
+    private void submitJbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitJbtnActionPerformed
+        // TODO add your handling code here:
+        String userEmail = emailJtf.getText().trim().toLowerCase();
+        char[] inputPassword = passwordJpf.getPassword();
+
+        if (userEmail.isEmpty() || userEmail.equals("enter your email")) {
+            JOptionPane.showMessageDialog(this, "Please enter your email.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (inputPassword.length == 0 || new String(inputPassword).equals("Enter your password")) {
+            JOptionPane.showMessageDialog(this, "Please enter your password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Read stored salt and hash
+        String storedSalt = DBhelper.getSaltByEmail(userEmail);
+        String storedHash = DBhelper.getHashedPasswordByEmail(userEmail);
+
+        if (storedSalt == null || storedHash == null) {
+            JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean ok = Hashing.verify(inputPassword, storedSalt, storedHash);
+        // clear the entered password
+        java.util.Arrays.fill(inputPassword, ' ');
+
+        if (!ok) {
+            JOptionPane.showMessageDialog(this, "Login failed. Invalid email or password.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // success — start session & open dashboard
+        sessionManager.startSession(userEmail, SESSION_TIMEOUT_MS, WARNING_TIME_MS);
+        this.dispose();
+        new DashboardGUI(sessionManager, userEmail).setVisible(true);
+    }//GEN-LAST:event_submitJbtnActionPerformed
+
+   
     /**
      * @param args the command line arguments
      */

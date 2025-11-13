@@ -17,6 +17,9 @@ public class SecureAccess {
         // TODO code application logic here
         welcomeGUI myGUI = new welcomeGUI(); 
         myGUI.setVisible(true);
+        
+//        DashboardGUI myDashboard = new DashboardGUI();
+//        myDashboard.setVisible(true);
     }
     
 }

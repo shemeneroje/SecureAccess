@@ -3,15 +3,20 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/DatabaseConnection.java</file>
-            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/Hashing.java</file>
-            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/SecureAccess.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/signupGUI.java</file>
             <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/loginGUI.java</file>
-            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/PasswordsDao.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/welcomeGUI.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/DBhelper.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/Hashing.java</file>
             <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/CryptoUtil.java</file>
-            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/tests/TestPasswords.java</file>
-            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/tests/TestSavePassword.java</file>
-            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/tests/TestSignupLogin.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/DatabaseConnection.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/IdleMonitor.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/SecureAccess.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/PasswordsDao.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/PasswordEntry.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/EncryptionUtil.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/AddPasswordGUI.java</file>
+            <file>file:/C:/Users/linru/OneDrive/Year3%20Security%20Fundamentals%20and%20Development/SecureAccess-main/src/secureaccess/KeyManager.java</file>
         </group>
     </open-files>
 </project-private>
