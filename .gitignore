@@ -1,0 +1,13 @@
+# NetBeans private files
+nbproject/private/
+build/
+dist/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# OS / Misc
+.DS_Store
