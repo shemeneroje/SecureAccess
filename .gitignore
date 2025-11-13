@@ -1,3 +1,4 @@
+HEAD
 # NetBeans private files
 nbproject/private/
 build/
@@ -11,3 +12,5 @@ dist/
 
 # OS / Misc
 .DS_Store
+/build/
+6990bf73109e56ff58db75ec8fa6263a4d05531c
